@@ -1,0 +1,2 @@
+urllib3==2.6.3
+webcolors==25.10.0
