@@ -1,0 +1,62 @@
+{
+    "trap_hard": [
+    ["i", "VI", "VII", "V"],
+    ["i", "VII", "VI"],
+    ["i", "iv", "v"],
+    ["i", "v", "VI", "VII"],
+    ["i", "VI", "III", "VII"],
+    ["i", "VII", "v", "VI"],
+    ["i", "iv", "VI", "V"],
+    ["i", "VI", "VII"],
+    ["i", "v", "iv"],
+    ["i", "III", "VII", "VI"]
+    ],
+    "trap_melancholic": [
+    ["i", "VI", "III", "VII"],
+    ["i", "III", "VI", "VII"],
+    ["i", "iv", "VI", "III"],
+    ["i", "v", "VII", "VI"],
+    ["i", "VI", "iv", "V"],
+    ["i", "III", "VII", "iv"],
+    ["i", "VII", "VI", "III"],
+    ["i", "iv", "v", "VI"],
+    ["i", "III", "v", "VI"],
+    ["i", "VI", "VII", "III"]
+    ],
+    "drill_hard": [
+    ["i", "v", "iv", "VII"],
+    ["i", "VI", "v", "VII"],
+    ["i", "VII", "VI", "V"],
+    ["i", "iv", "VI", "v"],
+    ["i", "v", "VII", "VI"],
+    ["i", "VI", "VII", "v"],
+    ["i", "VII", "v", "VI"],
+    ["i", "v", "iv", "VI"],
+    ["i", "VI", "III", "V"],
+    ["i", "VII", "III", "VI"]
+    ],
+    "old_school_hard": [
+    ["i", "IV", "V", "IV"],
+    ["i", "V", "IV", "i"],
+    ["i", "VI", "IV", "V"],
+    ["i", "III", "VI", "V"],
+    ["i", "IV", "V", "VI"],
+    ["i", "v", "VI", "IV"],
+    ["i", "VI", "V", "IV"],
+    ["i", "IV", "i", "V"],
+    ["i", "III", "V", "VI"],
+    ["i", "IV", "v", "VI"]
+    ],
+    "old_school_melancholic": [
+    ["i", "iv", "VI", "III"],
+    ["i", "VI", "iv", "V"],
+    ["i", "III", "iv", "VI"],
+    ["i", "iv", "v", "VI"],
+    ["i", "III", "VII", "VI"],
+    ["i", "VI", "III", "VII"],
+    ["i", "iv", "VI", "VII"],
+    ["i", "III", "iv", "V"],
+    ["i", "VII", "vi", "III"],
+    ["i", "IV", "v", "VI"]
+    ]
+}
