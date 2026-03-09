@@ -1,3 +1,13 @@
+'''
+Explanation:
+I create a QMainWindow, set a title and size.
+A central widget holds a vertical layout.
+Add two buttons.
+The if __name__ == "__main__": block runs the application.
+'''
+
+
+
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout,QWidget
 
@@ -8,7 +18,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Beat & Lyrics Generator")      # Title
-        self.setMinimumSize(400, 200)                       # Wimdow size (width/height)
+        self.setMinimumSize(400, 200)                       # Window size (width/height)
 
         # Create central widget and layout
         central_widget = QWidget()                          # A central widget holds a vertical layout.
@@ -26,7 +36,6 @@ class MainWindow(QMainWindow):
         # Style buttons a bit
         self.btn_generate_beat.setMinimumHeight(50)         # button size height
         self.btn_generate_full.setMinimumHeight(50)
-
 
 
 
