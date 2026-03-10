@@ -143,7 +143,7 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | **1: Beat Generator** |
 | 1 | Project setup, virtual environment, basic PySide6 window with two buttons | ✅ |
 | 2 | SQLite database setup, tables for genres, themes, instruments, chord progressions, drum patterns; seed from JSON | ✅ |
-| 3 | Chord progression engine using music21 (Roman numeral → notes) | ⬜ |
+| 3 | Chord progression engine using music21 (Roman numeral → notes) | ✅ |
 | 4 | Rule‑based melody generator (chord tones + passing notes) | ⬜ |
 | 5 | Probabilistic drum pattern generator per genre | ⬜ |
 | 6 | MIDI export and playback (pygame or FluidSynth) | ⬜ |
