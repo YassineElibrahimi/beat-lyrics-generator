@@ -138,15 +138,15 @@ beat-lyrics-generator/
 
 This project follows a **checkpoint‑based development plan**. Each checkpoint is a self‑contained feature. Below is the current progress (✅ = completed, ⬜ = pending).
 
-| Phase | Checkpoint | Status |
-|-------|------------|--------|
+| Phase | Checkpoint | Checkpoint | Status |
+|-------|------------|------------|--------|
 | **1: Beat Generator** |
 | 1 | Project setup, virtual environment, basic PySide6 window with two buttons | ✅ |
 | 2 | SQLite database setup, tables for genres, themes, instruments, chord progressions, drum patterns; seed from JSON | ✅ |
 | 3 | Chord progression engine using music21 (Roman numeral → notes) | ✅ |
 | 4 | Rule‑based melody generator (chord tones + passing notes) | ✅ |
 | 5 | Probabilistic drum pattern generator per genre | ✅ |
-| 6 | MIDI export and playback (pygame or FluidSynth) | ⬜ |
+| 6 | MIDI export and playback (pygame or FluidSynth) |I have to change the Pygame sounds; they were painful to hear, but the code is working fine.(search for alternative)| ✅ |
 | 7 | Beat editor UI with regenerate buttons for each track | ⬜ |
 | **2: Lyrics Generator** |
 | 8 | Lyrics database tables, Genius API client with caching | ⬜ |
