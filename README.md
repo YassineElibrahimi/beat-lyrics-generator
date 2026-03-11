@@ -147,7 +147,8 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 4 | Rule‑based melody generator (chord tones + passing notes) || ✅ |
 | 5 | Probabilistic drum pattern generator per genre || ✅ |
 | 6 | MIDI export and playback (pygame or FluidSynth) |I have to change the Pygame sounds; they were painful to hear, but the code is working fine.(search for alternative)| ✅ |
-| 7 | Beat editor UI with regenerate buttons for each track || ⬜ |
+| 7 | Beat editor UI with regenerate buttons for each track |As expected, the UI will take some time to complete, So I replace it "for now" with a CLI. (Why? To test my code, and check if everything is working; To be fair though, that was a good call.)| ⬜/✅ |
+| - | Fix bugs in the phase 1, and check if everything is working as expected.||⬜|
 | **2: Lyrics Generator** |
 | 8 | Lyrics database tables, Genius API client with caching || ⬜ |
 | 9 | Vocabulary extraction and sentiment tagging of lines || ⬜ |
