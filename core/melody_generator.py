@@ -136,15 +136,15 @@ class MelodyGenerator:
                 candidates = self._filter_candidates(candidates, prev_pitch)
 
                 # Choose pitch with repeat avoidance
-                pitch = self._choose_pitch(candidates, prev_pitch)
-                if pitch is None:
-                    pitch = random.choice(chord_tones)  # ultimate fallback
+                choosen_pitch = self._choose_pitch(candidates, prev_pitch)
+                if choosen_pitch is None:
+                    choosen_pitch = random.choice(chord_tones)  # ultimate fallback
 
                 # Create note object
-                n = note.Note(pitch)    # 'n' stands for 'note' 
+                n = note.Note(choosen_pitch)    # 'n' stands for 'note' 
                 n.duration.quarterLength = note_duration
                 melody_stream.append(n)
 
-                prev_pitch = pitch      # update for next note
+                prev_pitch = choosen_pitch      # update for next note
 
         return melody_stream
