@@ -67,6 +67,9 @@ def generate_and_play(genre, theme, key, tempo):
     chords = chord_gen.generate(genre, theme, key)
     print(f"  - Generated {len(chords)} chords")
 
+    total_beats = sum(c.quarterLength for c in chords)
+    num_bars = int(total_beats / 4)  # assume 4/4 time
+
     # Melody generator
     melody_gen = MelodyGenerator(seed=42)
     melody = melody_gen.generate_melody(chords, key_name=key, durations_per_chord=4)
@@ -82,7 +85,7 @@ def generate_and_play(genre, theme, key, tempo):
     exporter = MIDIExporter(tempo=tempo)
     exporter.add_chords(chords, program=1)   # piano
     exporter.add_melody(melody, program=73)  # flute
-    exporter.add_drums(drum_events)
+    exporter.add_drums(drum_events, num_bars=num_bars)
 
     # Save midi
     filename = f"beat_{genre}_{theme}_{key}_{tempo}.mid"

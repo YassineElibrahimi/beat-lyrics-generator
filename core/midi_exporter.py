@@ -68,22 +68,24 @@ class MIDIExporter:
             time += duration
         self.midi.instruments.append(track)
 
-    def add_drums(self, drum_events, start_time=0, step_duration=0.25):
+    def add_drums(self, drum_events, start_time=0, step_duration=0.25, num_bars=1):
         """
-        Add a drum track (channel 9).
-        drum_events : list of (time_in_beats, note, velocity) events
+        Add a drum track (channel 9) repeating the pattern for num_bars.
+        drum_events : list of (time_in_beats, note, velocity) events for one bar
         step_duration: duration of each drum hit in beats (default 16th note = 0.25)
+        num_bars: number of times to repeat the pattern
         """
         track = pretty_midi.Instrument(program=0, is_drum=True, name='Drums')
-        for time, note, vel in drum_events:
-            # Each drum hit is a 16th note duration (0.25 beats) by default.
-            note_obj = pretty_midi.Note(
-                velocity    = vel,
-                pitch       = note,
-                start       = start_time + time,
-                end         = start_time + time + step_duration
-            )
-            track.notes.append(note_obj)
+        for bar in range(num_bars):
+            bar_start = start_time + bar * 4.0  # each bar is 4 beats
+            for time, note, vel in drum_events:
+                note_obj = pretty_midi.Note(
+                    velocity=vel,
+                    pitch=note,
+                    start=bar_start + time,
+                    end=bar_start + time + step_duration
+                )
+                track.notes.append(note_obj)
         self.midi.instruments.append(track)
 
     def save(self, filename):
