@@ -7,7 +7,6 @@ Patterns are 16 steps (one bar in 4/4 at 16th note resolution).
 Each drum instrument has a probability array [0..1] for each step.
 
 *Content :
-_get_connection()
 load_patterns()
 generate_pattern()
 regenerate_kick()
@@ -16,6 +15,9 @@ regenerate_hihat()
 regenerate_open_hat()
 get_all_events()
 """
+
+
+
 
 
 import random
@@ -50,8 +52,8 @@ class DrumGenerator:
         Load all patterns for a given genre from the database
         Returns a dictionary: {instrument_name: probabilities_list}
         """
-        with self._get_connection() as connected:
-            cursor = connected.cursor()
+        with self._get_connection() as connection:
+            cursor = connection.cursor()
             # Get genre id
             cursor.execute('SELECT id FROM genres WHERE name = ?', (genre,))
             row = cursor.fetchone()
@@ -85,7 +87,7 @@ class DrumGenerator:
         3. Also stores the full 16-step grid for each instrument in self.current_grid.
         """
         patterns = self.load_patterns(genre)
-        # If we dont't have a stored grid yet, create empty.
+        # If we don't have a stored grid yet, create empty.
         if not hasattr(self, 'current_grid'):
             self.current_grid = {}
 
@@ -111,7 +113,9 @@ class DrumGenerator:
                 active = random.random() < prob
                 grid.append(active)
                 if active:
-                    events.append((step, self.DRUM_NOTES[instrument], 100))
+                    note_val = self.DRUM_NOTES.get(instrument)  # safer lookup; note_value = MIDI number for this drum
+                    if note_val is not None:
+                        events.append((step, note_val, 100))
             self.current_grid[instrument]   = grid
             result_events[instrument]       = events
 

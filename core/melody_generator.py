@@ -2,8 +2,7 @@
 
 """
 Explanation:
-
-Generates a monophonic melody from a chord progression using rule‑based approach.
+Generates a monophonic melody from a chord progression using rule-based approach.
 Features:
 - Chord tones for stability, scale tones for passing notes.
 - Probabilistic choice (70% chord tone, 30% passing tone).
@@ -12,7 +11,6 @@ Features:
 - Allows occasional octave leaps for interest.
 
 *Content:
-
 _chord_tones()
 _scale_tones()
 _filter_candidates()
@@ -22,8 +20,10 @@ generate_melody()
 
 
 
+
 from music21 import note, stream, key, scale, pitch
 import random
+
 
 
 
@@ -51,13 +51,13 @@ class MelodyGenerator:
         root_midi   = chord_obj.root().midi if chord_obj.root() else 60
         root_pitch  = pitch.Pitch(root_midi)
 
-        # Determine major or minor scale based on key mode
-        if key_obj.mode == 'major':
-            scale_obj = scale.MajorScale(key_obj.tonic)
-            intervals = [2, 2, 1, 2, 2, 2, 1]  # whole/whole/half/whole etc.
-        else:
+        # Determine major or minor scale based on key
+        if key_obj.isMinor():
             scale_obj = scale.MinorScale(key_obj.tonic)
             intervals = [2, 1, 2, 2, 1, 2, 2]  # natural minor intervals
+        else:
+            scale_obj = scale.MajorScale(key_obj.tonic)
+            intervals = [2, 2, 1, 2, 2, 2, 1]  # major scale intervals
 
         try:
             # Try music21's getPitches method (some versions may not support maxPitches)
@@ -136,15 +136,15 @@ class MelodyGenerator:
                 candidates = self._filter_candidates(candidates, prev_pitch)
 
                 # Choose pitch with repeat avoidance
-                choosen_pitch = self._choose_pitch(candidates, prev_pitch)
-                if choosen_pitch is None:
-                    choosen_pitch = random.choice(chord_tones)  # ultimate fallback
+                chosen_pitch = self._choose_pitch(candidates, prev_pitch)
+                if chosen_pitch is None:
+                    chosen_pitch = random.choice(chord_tones)  # ultimate fallback
 
                 # Create note object
-                n = note.Note(choosen_pitch)    # 'n' stands for 'note' 
+                n = note.Note(chosen_pitch)    # 'n' stands for 'note' 
                 n.duration.quarterLength = note_duration
                 melody_stream.append(n)
 
-                prev_pitch = choosen_pitch      # update for next note
+                prev_pitch = chosen_pitch      # update for next note
 
         return melody_stream

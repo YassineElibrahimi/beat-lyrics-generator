@@ -7,6 +7,7 @@ Allows generating a beat with selected parameters.
 print_header()
 get_user_choices()
 generate_and_play()
+main()
 """
 
 import sys
@@ -15,7 +16,6 @@ from core.chord_generator import ChordGenerator
 from core.melody_generator import MelodyGenerator
 from core.drum_generator import DrumGenerator
 from core.midi_exporter import MIDIExporter
-
 
 
 def print_header():
@@ -77,9 +77,9 @@ def generate_and_play(genre, theme, key, tempo):
 
 def main():
     print_header()
-    genre, theme, key, tempo = get_user_choices()
+    genre, theme, key_name, tempo = get_user_choices()
     try:
-        generate_and_play(genre, theme, key, tempo)
+        generate_and_play(genre, theme, key_name, tempo)
     except KeyboardInterrupt:
         print("\nStopped.")
     except Exception as e:

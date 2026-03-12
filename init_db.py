@@ -1,11 +1,14 @@
 '''
 Explanation:
-This script will:
 Call database.init_db() to create tables.
 Insert genres and themes.
 Insert instruments from JSON.
 Insert chord progressions from JSON.
 Insert drum patterns from JSON.
+
+*Content:
+load_json()
+seed_database()
 '''
 
 import os
@@ -16,7 +19,11 @@ import json
 
 
 def load_json(filename):
-    path = os.path.join('data', 'templates', filename)
+    TEMPLATES_DIR = os.path.join('data', 'templates')
+    if not os.path.exists(TEMPLATES_DIR):
+        os.makedirs(TEMPLATES_DIR)
+
+    path = os.path.join(TEMPLATES_DIR, filename)
     with open(path, 'r', encoding='utf-8') as file:
         return json.load(file)
 
@@ -24,43 +31,46 @@ def load_json(filename):
 # ============== CREATE / INSERT ==============
 def seed_database():
 
-# Create tables
+    # Create tables
     init_db()
     connection = get_connection()
     cursor     = connection.cursor()
 
-# Insert genre
+    # Insert genre
     genres_data = ['trap', 'drill', 'old_school']
 
     for genre in genres_data:
         cursor.execute('INSERT OR IGNORE INTO genres (name) VALUES (?)', (genre,))
     connection.commit()
 
-# Insert themes
+    # Insert themes
     themes_data = ['hard', 'melancholic', 'aggressive', 'smooth']
 
     for theme in themes_data:
         cursor.execute('INSERT OR IGNORE INTO themes (name) VALUES (?)', (theme,))
     connection.commit()
 
-# Get genre and theme IDs for lookups
+    # Get genre and theme IDs for lookups
     cursor.execute('SELECT id, name FROM genres')
     genre_ids = {row['name']: row['id'] for row in cursor.fetchall()}
 
     cursor.execute('SELECT id, name FROM themes')
     theme_ids = {row['name']: row['id'] for row in cursor.fetchall()}
 
-# Insert instruments
+    # Insert instruments
     instruments = load_json('instruments.json')
 
     for name , program in instruments.items():
         cursor.execute('INSERT OR IGNORE INTO instruments (name, midi_program) VALUES (?, ?)', (name, program))
     connection.commit()
 
-# Insert chord progressions
+    # Insert chord progressions
     chord_progs = load_json('chord_progressions.json')
 
     for key, progressions in chord_progs.items():
+        if '_' not in key:
+            print(f"Skipping invalid key format: {key}")
+            continue
         genre_name, theme_name = key.split('_',1)         # key format: "genre_theme" (e.g., "trap_hard")
         
         if genre_name not in genre_ids or theme_name not in theme_ids:
@@ -78,7 +88,7 @@ def seed_database():
             )
     connection.commit()
 
-# Insert drum patterns
+    # Insert drum patterns
     drum_patterns = load_json('drum_patterns.json')
 
     for genre_name, patterns in drum_patterns.items():

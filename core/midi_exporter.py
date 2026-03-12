@@ -1,4 +1,4 @@
-# core/midi_exporter
+# core/midi_exporter.py
 
 """
 Explanation:
@@ -58,20 +58,21 @@ class MIDIExporter:
 
         for note_obj in melody_stream.notes:
             duration    = note_obj.quarterLength
-            note        = pretty_midi.Note(
+            midi_note        = pretty_midi.Note(
                 velocity    = 80,
                 pitch       = note_obj.pitch.midi,
                 start       = time,
                 end         = time + duration
             )
-            track.notes.append(note)
+            track.notes.append(midi_note)
             time += duration
         self.midi.instruments.append(track)
 
-    def add_drums(self, drum_events, start_time=0):
+    def add_drums(self, drum_events, start_time=0, step_duration=0.25):
         """
         Add a drum track (channel 9).
         drum_events : list of (time_in_beats, note, velocity) events
+        step_duration: duration of each drum hit in beats (default 16th note = 0.25)
         """
         track = pretty_midi.Instrument(program=0, is_drum=True, name='Drums')
         for time, note, vel in drum_events:
@@ -80,7 +81,7 @@ class MIDIExporter:
                 velocity    = vel,
                 pitch       = note,
                 start       = start_time + time,
-                end     = start_time + time + 0.25
+                end         = start_time + time + step_duration
             )
             track.notes.append(note_obj)
         self.midi.instruments.append(track)
@@ -99,8 +100,13 @@ class MIDIExporter:
             self.save(path)
 
         # Initialize pygame mixer if not already
-        if not pygame.mixer.get_init():
-            pygame.mixer.init()
+        try:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+        except pygame.error as e:
+            print(f"Warning: pygame mixer could not initialize: {e}")
+            return  # Skip playback if no audio device
+
         pygame.mixer.music.load(path)
         pygame.mixer.music.play()
 

@@ -5,7 +5,11 @@ Explanation:
 This creates the necessary tables.
 Note: drum_patterns stores each instrument's pattern separately (kick, snare, hi-hat) per genre, as a JSON string.
 This makes it easy to regenerate individual tracks.
+
+*Content:
+init_db()
 '''
+
 
 
 import os
@@ -15,6 +19,7 @@ import sqlite3
 
 
 DB_PATH = os.path.join(os.path.dirname(__file__),'beat_lyrics.db')
+
 def get_connection():
     """Return a connection to the database"""
     connection = sqlite3.connect(DB_PATH)
@@ -29,23 +34,23 @@ def init_db():
     with get_connection() as connect:
         cursor = connect.cursor()
 
-    # Genres table
+        # Genres table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS genres (
-                id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                name            TEXT UNIQUE NOT NULL
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                name    TEXT UNIQUE NOT NULL
             )
         ''')
 
-    # Theme table
+        # Theme table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS themes(
-                id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                name            TEXT UNIQUE NOT NULL
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                name    TEXT UNIQUE NOT NULL
             )
         ''')
 
-    # Instruments table (MIDI program number)
+        # Instruments table (MIDI program number)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS instruments (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +59,7 @@ def init_db():
             )
         ''')
 
-    # Chord progressions table (use roman numeral "i,III,iv,VI")
+        # Chord progressions table (use roman numeral "i,III,iv,VI")
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS chord_progressions (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,7 +71,7 @@ def init_db():
             )
         ''')
 
-    # Drum patterns table (probabilities as JSON)
+        # Drum patterns table (probabilities as JSON)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS drum_patterns (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
