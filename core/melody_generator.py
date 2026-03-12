@@ -52,7 +52,7 @@ class MelodyGenerator:
         root_pitch  = pitch.Pitch(root_midi)
 
         # Determine major or minor scale based on key
-        if key_obj.isMinor():
+        if key_obj.mode == 'minor':
             scale_obj = scale.MinorScale(key_obj.tonic)
             intervals = [2, 1, 2, 2, 1, 2, 2]  # natural minor intervals
         else:

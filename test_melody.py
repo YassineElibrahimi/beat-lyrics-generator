@@ -4,7 +4,7 @@ from core.melody_generator import MelodyGenerator
 def main():
     # First, get a chord progression
     chord_gen = ChordGenerator()
-    chords = chord_gen.generate(genre='trap', theme='hard', key='C')
+    chords = chord_gen.generate(genre='trap', theme='hard', key_name='C')
     print(f"Generated {len(chords)} chords.")
 
     # Now generate a melody

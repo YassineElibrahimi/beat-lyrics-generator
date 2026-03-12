@@ -12,7 +12,7 @@ def main():
 
     print("Generating chord progression...")
     chord_gen = ChordGenerator()
-    chords = chord_gen.generate(genre, theme, key)
+    chords = chord_gen.generate(genre, theme, key_name=key)
     print(f"Generated {len(chords)} chords.")
 
     print("Generating melody...")
