@@ -151,7 +151,7 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 5 | Probabilistic drum pattern generator per genre || ✅ |
 | 6 | MIDI export and playback (pygame)  |✅ *(audio quality to be improved)* | ✅ |
 | 7 | GUI (PySide6 + QML) – **paused**, replaced with CLI for testing | ⬜/✅ |
-| 7b | **Bug fixes and validation of Phase 1** ||⬜|
+| 7b | **Bug fixes and validation of Phase 1** || ✅ |
 | **2: Lyrics Generator** |
 | 8 | Lyrics database tables, Genius API client with caching || ⬜ |
 | 9 | Vocabulary extraction and sentiment tagging  || ⬜ |
