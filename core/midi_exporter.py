@@ -22,8 +22,8 @@ import pretty_midi
 import pygame
 import tempfile
 import os
-
-
+import subprocess
+import shutil
 
 
 
@@ -118,58 +118,63 @@ class MIDIExporter:
         if filename is None:
             os.unlink(path)
 
+    def play_with_fluidsynth(self, soundfont_path, filename=None):
+        """
+        Render MIDI to audio using FluidSynth and play with pygame.
+        Requires a SoundFont file (.sf2).
+        """
+        if filename is None:
+            fd, midi_path = tempfile.mkstemp(suffix='.mid')
+            os.close(fd)
+            self.save(midi_path)
+        else:
+            midi_path = filename
+
+        # Try to import fluidsynth; if it fails, fallback to pygame
+        try:
+            import fluidsynth
+        except (ImportError, FileNotFoundError) as e:
+            print(f"FluidSynth Python module not available: {e}")
+            print("Falling back to pygame playback.")
+            self.play(midi_path if filename is None else filename)
+            return
+
+        # Check if fluidsynth executable exists (we'll use subprocess)
+        if not shutil.which('fluidsynth'):
+            print("FluidSynth executable not found. Install FluidSynth (https://www.fluidsynth.org/) and ensure it's in PATH.")
+            print("Falling back to pygame playback.")
+            self.play(midi_path if filename is None else filename)
+            return
 
 
 
+        # Render to WAV using FluidSynth
+        wav_path = midi_path.replace('.mid', '.wav')
+        # FluidSynth CLI convert MIDI → WAV (pyfluidsynth can't render directly).
+        try:
+            subprocess.run([
+                'fluidsynth',
+                '-ni', soundfont_path,
+                midi_path,              # Input  : MIDI file
+                '-F', wav_path,          # Output : WAV file
+                '-r', '44100',           # rate (44.1 kHz)
+                '-g', '1.0'             # Gain
+            ], check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            print(f"FluidSynth rendering failed: {e.stderr.decode()}")
+            print("Falling back to pygame playback.")
+            self.play(midi_path if filename is None else filename)
+            return
 
+        # Play the WAV with pygame
+        if not pygame.mixer.get_init():
+            pygame.mixer.init(frequency=44100, size=-16, channels=2)
+        pygame.mixer.music.load(wav_path)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.wait(100)
 
-
-# This Note is 'FOR ME'; NO NEED to READ it.
-"""
----
-fd, path = tempfile.mkstemp(suffix='.mid')  # fd stands for file descriptor.
----
-
-# What a file descriptor is:
-it's just a number that represents the open file.
-it handles the os.
-it used to reference an open file.
-Instead of working with a Python file object.
-
-# For example, mkstemp() returns two things:
-1. fd    → the file descriptor (an integer like 3, 4, etc.)
-2. path  → the full path to the temporary file that was created
-
-# Why os.close(fd) is used
-Right after creating the file:
----
-os.close(fd)
----
-
-The code closes the file descriptor because:
-• tempfile.mkstemp() creates and opens the file.
-• The code only needs the file path, not the open descriptor.
-• The program will reopen/write to it later using:
----
-self.save(path)
----
-
-# Flow of the code
-1. Create temporary file
-2. Get (fd, path)
-3. Close the low-level file descriptor
-4. Use path to save the MIDI file
-
-# Simplified version:
----
-fd, path = tempfile.mkstemp(suffix='.mid')  # create temp file
-os.close(fd)                                # close descriptor
-self.save(path)                             # write to the file
----
-
-# Quick analogy
-Think of:
-• file descriptor (fd) → ticket number for an open file 🎟️
-• path → the address of the file 📁
-The code throws away the ticket and just keeps the address.
-"""
+        # Cleanup
+        os.unlink(wav_path)
+        if filename is None:
+            os.unlink(midi_path)

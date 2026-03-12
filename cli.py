@@ -6,10 +6,18 @@ Allows generating a beat with selected parameters.
 *Content:
 print_header()
 get_user_choices()
+play_beat()
 generate_and_play()
 main()
 """
 
+
+
+
+
+
+
+import os
 import sys
 import pygame
 from core.chord_generator import ChordGenerator
@@ -17,6 +25,10 @@ from core.melody_generator import MelodyGenerator
 from core.drum_generator import DrumGenerator
 from core.midi_exporter import MIDIExporter
 
+
+
+
+SOUNDFONT_PATH = os.path.join('resources', 'default_soundfont.sf2')
 
 def print_header():
     print("=" * 50)
@@ -37,6 +49,15 @@ def get_user_choices():
     tempo = int(tempo_str) if tempo_str else 140
 
     return genre, theme, key, tempo
+
+def play_beat(exporter, filename):
+    """Try to play with FluidSynth if SoundFont exist, else fallback to pygame."""
+    if os.path.exists(SOUNDFONT_PATH):
+        print("Using FluidSynth with SoundFont...")
+        exporter.play_with_fluidsynth(SOUNDFONT_PATH, filename)
+    else:
+        print("SoundFont not found. Using pygame fallback (low quality).")
+        exporter.play(filename)
 
 def generate_and_play(genre, theme, key, tempo):
     print(f"\nGenerating beat: {genre}, {theme}, {key}, {tempo} BPM...")
@@ -63,12 +84,14 @@ def generate_and_play(genre, theme, key, tempo):
     exporter.add_melody(melody, program=73)  # flute
     exporter.add_drums(drum_events)
 
+    # Save midi
     filename = f"beat_{genre}_{theme}_{key}_{tempo}.mid"
     exporter.save(filename)
     print(f"  - Saved MIDI to {filename}")
 
     # Play the MIDI
     print("\nPlaying beat... (press Ctrl+C to stop)")
+    play_beat(exporter, filename)
     pygame.mixer.init()
     pygame.mixer.music.load(filename)
     pygame.mixer.music.play()

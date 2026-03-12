@@ -1,17 +1,14 @@
 # Beat & Lyrics Generator
 
-Python application that generates beats and lyrics with an interactive, editable workflow. Built with:
-**PySide6 + QML** for a modern GUI.
-**music21** for music theory.
-**SQLite** for data storage.
-And various NLP tools for lyrics generation.
-Currently focused on an English/US Hip‑hop MVP (Moroccan Arabic 'Darija' support planned later).
-The project follows a checkpoint‑based development – see the roadmap below.
-Perfect for music producers, rappers, or anyone exploring algorithmic music creation.
+Python application that generates beats and lyrics with an interactive, editable workflow.  
+- Currently focused on an **English/US Hip‑hop MVP** (Moroccan Arabic 'Darija' support planned later).  
+*Perfect for music producers, rappers, or anyone exploring algorithmic music creation.*
 
 ---
 
 ## Overview
+
+**Think of the code as a car – it's fully built and ready to run.** The SoundFonts are like gasoline; without them, the engine still runs (using a pygame fallback), but with the right fuel, it will roar with professional audio quality
 
 Beat & Lyrics Generator lets you:
 - **Generate a beat** – choose genre, theme, instrument, key, and tempo, and get a complete beat with chords, melody, and drums.
@@ -25,35 +22,32 @@ This project started as an ambitious blueprint and has been refined into a reali
 
 ---
 
-## Features (MVP) *(Planned & Current)*
+## Current Features (Phase 1 – Beat Generator)
 
-- **Beat Generator**  
-  - Select genre (trap, drill, old school), theme (hard, melancholic, aggressive, smooth), lead instrument, key, and tempo.  
-  - Chord progressions based on Roman numeral templates (loaded from SQLite).  
-  - Rule‑based melody generation using chord tones and scale passing notes.  
-  - Probabilistic drum patterns per genre (kick, snare, hi‑hat, open hat) with independent regeneration.  
-  - Export to MIDI and playback via system synthesizer.
+- **Chord progression generator**  
+  - Roman numeral templates per genre & theme (trap, drill, old‑school).  
+  - Uses `music21` to convert numerals to actual notes in any key.
 
-- **Lyrics Generator (English)**  
-  - Fetch lyrics from Genius API (with caching) or use a pre‑collected corpus.  
-  - Extract theme‑based vocabulary using sentiment analysis (VADER/TextBlob).  
-  - Generate rhyming lines (AABB scheme) with `pronouncing` library.  
-  - Customizable structure: number of bars (8/16/32/64), toggle hook, add intro/outro ad‑libs.
+- **Melody generator**  
+  - Rule‑based: chord tones on strong beats, scale tones as passing notes.  
+  - Avoids large leaps and immediate pitch repetitions for more natural lines.
 
-- **Voice Synthesis (Simplified)**  
-  - Text‑to‑speech using gTTS (or optionally Amazon Polly) for English vocals.  
-  - Syllable‑to‑beat alignment: syllabify lyrics, map to 16th‑note grid, time‑stretch audio to fit.  
-  - Mix vocals with beat (rendered via FluidSynth) and play the full track.
+- **Drum pattern generator**  
+  - Probabilistic 16‑step patterns per genre (kick, snare, hi‑hat, open hat).  
+  - Independent regeneration of each drum track.
 
-- **Full Track Mode**  
-  - Randomly selects genre and theme, then generates beat, lyrics, and vocals together.  
-  - Displays all components with dedicated edit buttons.
+- **MIDI export & playback**  
+  - Combines chords, melody, and drums into a single MIDI file via `pretty_midi`.  
+  - Two playback modes:
+    - **Pygame fallback** (low quality, works out‑of‑the‑box).
+    - **FluidSynth + SoundFont** (professional quality) – *code is ready; you provide the SoundFont ("gasoline").*
 
-- **Project Persistence**  
-  - All user projects and generated content saved in SQLite.  
-  - Load previous projects to continue editing.
+- **Command‑line interface**  
+  - `cli.py` lets you select parameters, generate a beat, save MIDI, and play it.  
+  - A temporary solution while the GUI is being refined.
 
 ---
+
 
 ## Technology Stack *(Planned & Current)*
 
@@ -61,14 +55,34 @@ This project started as an ambitious blueprint and has been refined into a reali
 |--------------------------|---------------------------------------|--------|
 | Music theory & MIDI      | music21, pretty_midi                  | ✅     |
 | Drum patterns            | Custom probabilistic grids             | ✅     |
-| Audio playback (current) | pygame                                 | ⚠️ (will be replaced) |
-| High‑quality audio       | FluidSynth + custom SoundFonts         | ⬜ (planned) |
+| Audio playback (fallback)| pygame                                 | ✅     |
+| High‑quality audio       | FluidSynth + custom SoundFonts         | ✅ (code ready; requires external SoundFont) |
 | Lyrics acquisition       | lyricsgenius (Genius API)              | ⬜ (Phase 2) |
 | Sentiment analysis       | vaderSentiment / textblob              | ⬜ (Phase 2) |
 | Rhyme & syllables        | pronouncing, pyphen                    | ⬜ (Phase 2) |
 | Text‑to‑Speech           | gTTS / Amazon Polly                     | ⬜ (Phase 3) |
 | GUI                      | PySide6 + QML (paused)                  | ⬜ (will resume after core is solid) |
 | Database                 | SQLite3                                | ✅     |
+
+---
+
+## Audio Setup (Getting the "Gasoline")
+
+To enjoy professional audio quality, you need:
+
+1. **Install FluidSynth**  
+   - Windows: Download from [fluidsynth.org](http://www.fluidsynth.org/)  
+   - Linux: `sudo apt install fluidsynth`  
+   - macOS: `brew install fluidsynth`
+
+2. **Download a SoundFont** (`.sf2` file)  
+   Recommended free SoundFonts for hip‑hop:
+   - **SGM‑V2.01** – [Internet Archive](https://archive.org/details/sgm-v2.01-soundfont)  
+   - **FluidR3 GM** – [MuseScore](https://musescore.org/en/handbook/soundfonts-and-sfz-files#fluid-soundfont)
+
+3. **Place the SoundFont** in the `resources/` folder and rename it to `default_soundfont.sf2` (or modify the path in `cli.py`).
+
+Once the SoundFont is present, the CLI will automatically use FluidSynth for playback. If not, it falls back to pygame (lower quality).
 
 
 ---
@@ -84,13 +98,13 @@ python cli.py
 You will be prompted to enter:
 - **Genre**: trap / drill / old_school
 - **Theme**: hard / melancholic / aggressive / smooth
-- **Key**: e.g., C, Dm, etc.
+- **Key**: e.g., C, D, etc.
 - **Tempo**: BPM (default 140)
 
 The program then:
 - Generates chords, melody, and drums.
 - Saves a MIDI file (e.g., `beat_trap_hard_C_140.mid`).
-- Plays the MIDI using pygame (temporary; audio quality will improve).
+- Plays the MIDI using the best available audio method (FluidSynth if SoundFont found, otherwise pygame).
 
 ---
 
@@ -149,8 +163,8 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 3 | Chord progression engine using music21 (Roman numeral → notes) || ✅ |
 | 4 | Rule‑based melody generator (chord tones + passing notes) || ✅ |
 | 5 | Probabilistic drum pattern generator per genre || ✅ |
-| 6 | MIDI export and playback (pygame)  |✅ *(audio quality to be improved)* | ✅ |
-| 7 | GUI (PySide6 + QML) – **paused**, replaced with CLI for testing | ⬜/✅ |
+| 6 | MIDI export and playback (pygame + FluidSynth ready)   |*(high‑quality audio code ready, requires SoundFont)*| ✅ |
+| 7 | GUI (PySide6 + QML)|  – **paused**, replaced with CLI for testing | ⬜/✅ |
 | 7b | **Bug fixes and validation of Phase 1** || ✅ |
 | **2: Lyrics Generator** |
 | 8 | Lyrics database tables, Genius API client with caching || ⬜ |
