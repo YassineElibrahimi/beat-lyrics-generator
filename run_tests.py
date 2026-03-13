@@ -25,6 +25,7 @@ def main():
         "test_melody",
         "test_drums",
         "test_midi",
+        "test_lyrics"
     ]
     for mod in test_modules:
         run_test(mod)

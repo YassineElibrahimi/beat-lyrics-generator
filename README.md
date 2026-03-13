@@ -57,9 +57,10 @@ This project started as an ambitious blueprint and has been refined into a reali
 | Drum patterns            | Custom probabilistic grids             | ✅     |
 | Audio playback (fallback)| pygame                                 | ✅     |
 | High‑quality audio       | FluidSynth + custom SoundFonts         | ✅ (code ready; requires external SoundFont) |
-| Lyrics acquisition       | lyricsgenius (Genius API)              | ⬜ (Phase 2) |
+| Lyrics acquisition       | Kaggle datasets (no API)              | ✅ (imported) |
+| Vocabulary extraction      | Custom regex + frequency counting              | ✅ |
+| Rhyme & generation      | pronouncing, custom Markov-inspired              | ✅ |
 | Sentiment analysis       | vaderSentiment / textblob              | ⬜ (Phase 2) |
-| Rhyme & syllables        | pronouncing, pyphen                    | ⬜ (Phase 2) |
 | Text‑to‑Speech           | gTTS / Amazon Polly                     | ⬜ (Phase 3) |
 | GUI                      | PySide6 + QML (paused)                  | ⬜ (will resume after core is solid) |
 | Database                 | SQLite3                                | ✅     |
@@ -167,9 +168,9 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 7 | GUI (PySide6 + QML)|  – **paused**, replaced with CLI for testing | ⬜/✅ |
 | 7b | **Bug fixes and validation of Phase 1** || ✅ |
 | **2: Lyrics Generator** |
-| 8 | Lyrics database tables, Genius API client with caching || ⬜ |
-| 9 | Vocabulary extraction and sentiment tagging  || ⬜ |
-| 10 | Rhyme‑aware line generator (AABB) using pronouncing || ⬜ |
+| 8 | Import Kaggle lyrics datasets, build vocabulary, generate rhyming lines || ✅ |
+| 9 | Vocabulary refinement (sentiment analysis, theme assignment)  || ⬜ |
+| 10 | Improved line generation (Markov chains) || ⬜ |
 | 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) || ⬜ |
 | 12 | Theme matching between beat and lyrics || ⬜ |
 | **3: Voice Synthesis** |
@@ -198,7 +199,9 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 
 **Note**: This project uses the Genius API to fetch lyrics. Please respect their [terms of service](https://genius.com/static/terms) and rate limits (free tier ~50 requests/day). For larger usage, consider caching results or using alternative lyric datasets.
 
-**PS**: If I find a free, legal way to get data, I will mention it and use it later (like on Kaggle or other open-source platforms), or maybe I will make my own, but that will take some time. To be honest, don’t rely on that, because I have to respect the artist’s work and effort.
+**PS**: If I find a free, legal way to get data, I will mention it and use it later (like on Kaggle or other open-source platforms), or maybe I will make my own, but that will take some time. To be honest, don’t rely on that, because I have to respect the artist’s work and effort. (I have Done it ✅ *read below*)
+
+Lyrics Data: Instead of relying on live APIs, we've integrated three curated Kaggle hip-hop lyric datasets. The data is included in the repository, so you can generate lyrics offline with zero API limits. All preprocessing and vocabulary extraction are handled by the included scripts.
 
 ---
 
