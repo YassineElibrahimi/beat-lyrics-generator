@@ -1,14 +1,34 @@
 # data/database.py
 
-'''
+"""
 Explanation:
-This creates the necessary tables.
-Note: drum_patterns stores each instrument's pattern separately (kick, snare, hi-hat) per genre, as a JSON string.
-This makes it easy to regenerate individual tracks.
+This script sets up and manages the core SQLite database used for beat and lyric generation.
+It provides functions to connect to the database and initialize essential tables if they do not exist.
 
+Key functionalities include:
+- 'get_connection': returns a SQLite connection with row access by column name and enforces foreign key constraints.
+- 'init_db': creates tables required for musical and lyrical generation:
+    - 'genres': stores unique music genres.
+    - 'themes': stores lyrical themes.
+    - 'instruments': stores instrument names with corresponding MIDI program numbers.
+    - 'chord_progressions': stores chord sequences in Roman numeral format, linked to genres and themes.
+    - 'drum_patterns': stores probability grids for percussion patterns per genre, saved as JSON.
+
+This setup ensures the database has all tables needed to store musical structures and rhythmic patterns for procedural generation.
+"""
+
+"""
 *Content:
+get_connection()
 init_db()
-'''
+"""
+
+
+
+
+
+
+
 
 
 

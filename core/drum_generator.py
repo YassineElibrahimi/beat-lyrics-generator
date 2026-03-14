@@ -1,22 +1,32 @@
 # core/drum_generator.py
 
 """
-Explanation :
-Generates probabilistic drum patterns per genre.
-Patterns are 16 steps (one bar in 4/4 at 16th note resolution).
-Each drum instrument has a probability array [0..1] for each step.
+Explanation:
+This script defines a DrumGenerator class for programmatic drum pattern creation based on genre-specific probabilities stored in a SQLite database.
+It supports generation of kick, snare, hi-hat, and open-hat patterns and allows partial regeneration of individual instruments.
 
-*Content :
-load_patterns()
-generate_pattern()
-regenerate_kick()
-regenerate_snare()
-regenerate_hihat()
-regenerate_open_hat()
-get_all_events()
+Key functionalities include:
+- '_get_connection': establishes a connection to the SQLite database.
+- 'load_patterns': loads all drum patterns for a given genre, returning a dictionary of instrument names to probability lists (parsed from JSON).
+- 'generate_pattern': generates a full 16-step drum grid for each instrument, using probabilities to determine hits, and converts the grid to MIDI events (step, note, velocity). Can optionally regenerate specific instruments while keeping others unchanged.
+- 'regenerate_kick/snare/hihat/open_hat': convenience methods to regenerate only the specified instrument.
+- 'get_all_events': generates all drum patterns for a genre and returns a flat, time-sorted list of events with time in beats, suitable for sequencing or MIDI output.
+
+The class uses a persistent 'current_grid' attribute to maintain state between partial regenerations, ensuring consistent patterns across calls.
 """
 
-
+"""
+*Content:
+DrumGenerator.__init__()
+DrumGenerator._get_connection()
+DrumGenerator.load_patterns()
+DrumGenerator.generate_pattern()
+DrumGenerator.regenerate_kick()
+DrumGenerator.regenerate_snare()
+DrumGenerator.regenerate_hihat()
+DrumGenerator.regenerate_open_hat()
+DrumGenerator.get_all_events()
+"""
 
 
 

@@ -1,10 +1,24 @@
-'''
+"""
 Explanation:
-I create a QMainWindow, set a title and size.
-A central widget holds a vertical layout.
-Add two buttons.
-The if __name__ == "__main__": block runs the application.
-'''
+This script creates a simple GUI for the beat and lyrics generator using PySide6.
+It defines a main application window with a vertical layout containing two primary buttons.
+
+Key functionalities include:
+- 'MainWindow.__init__': initializes the QMainWindow, sets the window title and minimum size, and adds a central QWidget with a QVBoxLayout.
+- Adds two buttons: "Generate Beat" and "Generate Full Track", with minimum height styling for better visibility.
+- The layout ensures buttons are stacked vertically and the central widget hosts the layout.
+- The script also contains the standard PySide6 application startup logic under '__main__', creating the QApplication, showing the main window, and executing the event loop.
+
+This GUI provides a foundation for user interaction, where button clicks can later be connected to music generation functions.
+"""
+
+"""
+*Content:
+MainWindow.__init__()
+"""
+
+
+
 
 
 

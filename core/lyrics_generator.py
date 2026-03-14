@@ -1,6 +1,42 @@
+# core/lyrics_generator.py
+
+"""
+Explanation:
+This script defines a LyricsGenerator class that creates lyrics programmatically using a database of theme-based words.
+It connects to a SQLite database containing a 'vocabulary' table, retrieves words matching a theme, and assembles them into lines, verses, hooks, and full songs.
+
+Key functionalities include:
+- 'get_theme_words': fetches high-frequency words for a specific theme from the database.
+- 'generate_line': constructs a single line by randomly selecting words from the theme vocabulary.
+- 'generate_rhyming_couplet': generates two lines where the second line rhymes with the first, using the 'pronouncing' library.
+- 'generate_verse': builds a verse of multiple lines, optionally following a rhyme scheme (default AABB).
+- 'generate_hook': generates shorter lines suitable for a chorus or hook.
+- 'generate_full_lyrics': assembles a full song according to a user-defined structure (e.g., 'verse-hook-verse-hook') with configurable line counts.
+
+The class allows seeded randomness for reproducibility and leverages rhyming dictionaries to add lyrical coherence.
+"""
+
+"""
+*Content:
+LyricsGenerator.__init__()
+LyricsGenerator._get_connection()
+LyricsGenerator.get_theme_words()
+LyricsGenerator.generate_line()
+LyricsGenerator.generate_rhyming_couplet()
+LyricsGenerator.generate_verse()
+LyricsGenerator.generate_hook()
+LyricsGenerator.generate_full_lyrics()
+"""
+
+
+
+
 import sqlite3
 import random
 import pronouncing
+
+
+
 
 class LyricsGenerator:
     def __init__(self, db_path='data/beat_lyrics.db', seed=None):
@@ -28,8 +64,8 @@ class LyricsGenerator:
 
     def generate_line(self, theme_words, length_range=(4, 8)):
         """Generate a single line by randomly selecting words from theme vocabulary."""
-        num_words = random.randint(*length_range)
-        line_words = random.choices(theme_words, k=num_words)
+        num_words   = random.randint(*length_range)
+        line_words  = random.choices(theme_words, k=num_words)
         line = ' '.join(line_words)
         return line.capitalize()
 
@@ -38,14 +74,14 @@ class LyricsGenerator:
         if line1 is None:
             line1 = self.generate_line(theme_words)
         last_word = line1.split()[-1].lower()
-        rhymes = pronouncing.rhymes(last_word)
+        rhymes    = pronouncing.rhymes(last_word)
         if not rhymes:
             line2 = self.generate_line(theme_words)
         else:
-            rhyme_word = random.choice(rhymes)
-            num_words = random.randint(4, 8)
+            rhyme_word  = random.choice(rhymes)
+            num_words   = random.randint(4, 8)
             other_words = random.choices(theme_words, k=num_words-1)
-            line2 = ' '.join(other_words + [rhyme_word]).capitalize()
+            line2       = ' '.join(other_words + [rhyme_word]).capitalize()
         return line1, line2
 
     def generate_verse(self, theme, num_bars=16, rhyme_scheme='AABB'):
@@ -75,7 +111,7 @@ class LyricsGenerator:
 
     def generate_full_lyrics(self, theme, structure='verse-hook-verse-hook', bars_verse=16, bars_hook=8):
         """Generate lyrics according to structure."""
-        sections = structure.split('-')
+        sections  = structure.split('-')
         all_lines = []
         for section in sections:
             if section == 'verse':

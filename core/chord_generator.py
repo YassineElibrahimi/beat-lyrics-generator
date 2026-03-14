@@ -2,18 +2,28 @@
 
 """
 Explanation:
-'get_random_progression' queries the database for all progressions matching the genre and theme,
-then picks one at random.
-'roman_to_chords' uses 'music21.roman.RomanNumeral' to parse a Roman numeral string (like "i") in the context of a key, and extracts the actual chord.
-I assign a whole-note duration for now (chord_obj.duration.quarterLength = 4.0);
-later we'll adjust based on tempo and style.
-'generate' combines both steps.
+This script defines a ChordGenerator class that creates musical chord progressions based on genre and theme data stored in a SQLite database.
+It leverages the 'music21' library to convert Roman numeral progressions into actual chords in a specified key.
 
-*Content:
-get_random_progression()
-roman_to_chords()
-generate()
+Key functionalities include:
+- '_get_connection': establishes a connection to the SQLite database.
+- 'get_random_progression': queries the database for all chord progressions matching a given genre and theme, and selects one at random. Returns a list of Roman numeral strings.
+- 'roman_to_chords': converts a list of Roman numerals into 'music21' Chord objects in the specified key, assigning a standard whole-note duration for each chord.
+- 'generate': high-level method combining the above two steps to return a ready-to-use list of chord objects for musical composition.
+
+This setup allows dynamic generation of chord sequences tailored to specific musical styles or lyrical themes.
 """
+
+"""
+*Content:
+ChordGenerator.__init__()
+ChordGenerator._get_connection()
+ChordGenerator.get_random_progression()
+ChordGenerator.roman_to_chords()
+ChordGenerator.generate()
+"""
+
+
 
 
 

@@ -2,20 +2,40 @@
 
 """
 Explanation:
-The MIDI exporter combines chords, melody, and drums into a single MIDI file and plays it using pygame.
+This script defines a MIDIExporter class to convert chord progressions, melodies, and drum patterns into playable MIDI files.
+It supports playback through pygame or FluidSynth (with optional SoundFont), and provides methods to save MIDI files for later use.
 
+Key functionalities include:
+- '__init__': initializes a PrettyMIDI object with a specified tempo.
+- 'add_chords': adds a chord track from a list of music21 Chord objects.
+- 'add_melody': adds a melody track from a music21 stream.Part.
+- 'add_drums': adds a drum track (MIDI channel 9) using a list of events and allows repeating bars.
+- 'save': writes the MIDI data to a file.
+- 'play': plays a MIDI file using pygame.mixer, optionally using a temporary file.
+- 'play_with_fluidsynth': renders MIDI to audio via FluidSynth using a SoundFont and plays the resulting WAV file, with fallback to pygame if FluidSynth is unavailable.
+
+This class enables end-to-end audio generation from symbolic music representations, supporting both standard MIDI and sampled playback.
+"""
+
+"""
 *Content:
-add_chords()
-add_melody()
-add_drums()
-save()
-play()
+MIDIExporter.__init__()
+MIDIExporter.add_chords()
+MIDIExporter.add_melody()
+MIDIExporter.add_drums()
+MIDIExporter.save()
+MIDIExporter.play()
+MIDIExporter.play_with_fluidsynth()
 """
 
 # Basically, 'program' selects the instrument sound for that track:
 # program=1 refers to Acoustic Grand Piano.
 # program=73 → Flute
 # program=25 → Acoustic Guitar
+
+
+
+
 
 
 import pretty_midi

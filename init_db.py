@@ -1,15 +1,35 @@
-'''
+"""
 Explanation:
-Call database.init_db() to create tables.
-Insert genres and themes.
-Insert instruments from JSON.
-Insert chord progressions from JSON.
-Insert drum patterns from JSON.
+This script seeds the core beat and lyrics database with initial data for genres, themes, instruments, chord progressions, and drum patterns.
+It loads predefined JSON templates from the 'data/templates' directory and populates the corresponding database tables.
 
+Key functionalities include:
+- 'load_json': reads a JSON file from the 'data/templates' directory, creating the directory if it doesn't exist.
+- 'seed_database': initializes tables using 'init_db', then inserts:
+    - predefined genres (e.g., trap, drill, old_school)
+    - predefined themes (e.g., hard, melancholic, aggressive, smooth)
+    - instruments with MIDI program numbers from 'instruments.json'
+    - chord progressions from 'chord_progressions.json', linked to genres and themes
+    - drum patterns from 'drum_patterns.json', storing probability grids as JSON strings
+- Ensures duplicate entries are ignored using 'INSERT OR IGNORE' and validates that genre/theme keys exist before insertion.
+
+This script sets up the database with structured musical templates, enabling procedural generation of chords, drums, and melodies.
+"""
+
+"""
 *Content:
 load_json()
 seed_database()
-'''
+"""
+
+
+
+
+
+
+
+
+
 
 import os
 from data.database import get_connection, init_db

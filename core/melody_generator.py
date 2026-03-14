@@ -2,21 +2,31 @@
 
 """
 Explanation:
-Generates a monophonic melody from a chord progression using rule-based approach.
-Features:
-- Chord tones for stability, scale tones for passing notes.
-- Probabilistic choice (70% chord tone, 30% passing tone).
-- Avoids large leaps (prefers notes within a perfect fifth of the previous note).
-- Tries to avoid immediate repetition of the same pitch.
-- Allows occasional octave leaps for interest.
+This script defines a MelodyGenerator class that creates melodic lines over a chord progression using the 'music21' library.
+It focuses on generating musically coherent melodies by combining chord tones and scale tones, while avoiding large leaps and repeated pitches.
 
-*Content:
-_chord_tones()
-_scale_tones()
-_filter_candidates()
-_choose_pitch()
-generate_melody()
+Key functionalities include:
+- '_chord_tones': extracts MIDI pitches from a chord object.
+- '_scale_tones': generates scale pitches (major or minor) around a chord’s root, within one octave, using 'music21' scales or a manual interval fallback.
+- '_filter_candidates': limits pitch choices to those within a maximum interval from the previous note to avoid large leaps.
+- '_choose_pitch': selects a pitch from candidates, favoring variation over immediate repetition.
+- 'generate_melody': creates a 'music21' Stream for a given chord progression and key, assigning a specified number of notes per chord, prioritizing chord tones on strong beats and scale tones as passing tones.
+
+The class allows configurable octave range and optional random seed for reproducible melodies, producing streams ready for playback or MIDI export.
 """
+
+"""
+*Content:
+MelodyGenerator.__init__()
+MelodyGenerator._chord_tones()
+MelodyGenerator._scale_tones()
+MelodyGenerator._filter_candidates()
+MelodyGenerator._choose_pitch()
+MelodyGenerator.generate_melody()
+"""
+
+
+
 
 
 

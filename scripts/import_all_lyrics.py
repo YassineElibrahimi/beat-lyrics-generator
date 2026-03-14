@@ -1,21 +1,53 @@
+# scripts/import_all_lyrics.py
+
+"""
+Explanation:
+This script imports song lyrics from multiple sources into a structured SQLite database.
+It handles three datasets: a CSV of all lyrics, a folder of text files, and a raw lyrics CSV for NLP tasks.
+
+Key steps include:
+- Cleaning lyrics using 'clean_lyrics', which removes markers like [Verse] or [Chorus] and normalizes whitespace.
+- Inserting artists, songs, and individual lyric lines into the database via 'insert_song_lines', including placeholder sentiment scores and themes.
+- Handling multiple file encodings when reading text files to prevent decode errors.
+- Iterating through CSV rows or text files, cleaning lyrics, and storing them systematically in the database tables 'artists', 'songs', and 'lines'.
+
+The script is executable directly; running it processes all datasets and populates the database with cleaned lyrics ready for analysis or vocabulary building.
+"""
+
+"""
+*Content:
+clean_lyrics()
+insert_song_lines()
+import_all_lyrics()
+import_txt_folder()
+import_lyrics_raw()
+main()
+"""
+
+
+
+
+
 import csv
 import os
 import re
 import sqlite3
 from data.database import get_connection
-import sys
+
+
+
 
 # csv.field_size_limit(sys.maxsize)
 csv.field_size_limit(2**31 - 1)   # safe for Windows
 # ---------- Helper Functions ----------
 def clean_lyrics(text):
     """Remove [Verse], [Chorus], etc., and normalize whitespace."""
-    text = re.sub(r'\[.*?\]', '', text)
-    text = re.sub(r'\n\s*\n', '\n', text)
-    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    text    = re.sub(r'\[.*?\]', '', text)
+    text    = re.sub(r'\n\s*\n', '\n', text)
+    lines   = [line.strip() for line in text.split('\n') if line.strip()]
     return '\n'.join(lines)
 
-def insert_song_lines(conn, artist, song, lyrics, theme='hard'):
+def insert_song_lines(conn, artist, song, lyrics, theme='hard'):    # label all lyrics as 'hard' for now
     """Insert artist, song, and lines into database."""
     cursor = conn.cursor()
     # Artist
@@ -48,9 +80,9 @@ def import_all_lyrics(conn, csv_path):
     with open(csv_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            artist = row.get('artist', '').strip()
-            song = row.get('Song', '').strip()
-            lyrics = row.get('lyrics', '').strip()
+            artist  = row.get('artist', '').strip()
+            song    = row.get('Song', '').strip()
+            lyrics  = row.get('lyrics', '').strip()
             if not artist or not song or not lyrics:
                 continue
             cleaned = clean_lyrics(lyrics)
@@ -63,9 +95,9 @@ def import_txt_folder(conn, folder_path):
     for filename in os.listdir(folder_path):
         if not filename.endswith('.txt'):
             continue
-        artist = filename.replace('.txt', '').replace('_', ' ').title()
-        filepath = os.path.join(folder_path, filename)
-        lyrics = None
+        artist      = filename.replace('.txt', '').replace('_', ' ').title()
+        filepath    = os.path.join(folder_path, filename)
+        lyrics      = None
         for enc in encodings:
             try:
                 with open(filepath, 'r', encoding=enc) as f:
@@ -85,9 +117,9 @@ def import_lyrics_raw(conn, csv_path):
     with open(csv_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            artist = row.get('artist', '').strip()
-            track = row.get('track_name', '').strip()
-            lyrics = row.get('raw_lyrics', '').strip()
+            artist  = row.get('artist', '').strip()
+            track   = row.get('track_name', '').strip()
+            lyrics  = row.get('raw_lyrics', '').strip()
             if not artist or not track or not lyrics:
                 continue
             cleaned = clean_lyrics(lyrics)

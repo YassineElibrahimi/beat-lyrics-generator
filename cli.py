@@ -1,8 +1,24 @@
 """
 Explanation:
-Command-line interface for Beat & Lyrics Generator.
-Allows generating a beat with selected parameters.
+This script provides a command-line interface (CLI) for generating beats, melodies, and drum patterns,
+exporting them to MIDI, and playing the result. It integrates the core generators and MIDI exporter.
 
+Key functionalities include:
+- 'print_header': prints a decorative CLI header.
+- 'get_user_choices': prompts the user to select genre, theme, key, and tempo, providing defaults.
+- 'play_beat': attempts to play the generated MIDI using FluidSynth with a SoundFont if available, otherwise falls back to pygame.
+- 'generate_and_play': orchestrates the music generation process:
+    1. Generates chord progression using ChordGenerator.
+    2. Generates melody over chords using MelodyGenerator.
+    3. Generates drum patterns using DrumGenerator.
+    4. Exports chords, melody, and drums to MIDI using MIDIExporter.
+    5. Saves the MIDI to a file and plays it.
+- 'main': entry point; prints header, gathers user choices, and calls 'generate_and_play', handling KeyboardInterrupt and other exceptions gracefully.
+
+This script effectively turns the core music generation modules into an interactive CLI tool for producing and listening to procedurally generated beats.
+"""
+
+"""
 *Content:
 print_header()
 get_user_choices()
@@ -10,6 +26,8 @@ play_beat()
 generate_and_play()
 main()
 """
+
+
 
 
 
