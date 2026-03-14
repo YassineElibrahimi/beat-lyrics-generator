@@ -1,0 +1,32 @@
+1. Calculate sentiment (using VADER) → a compound score 's' between -1 and 1.
+
+2. For each theme:
+
+    • Keyword score: count how many keywords from that theme appear in the line (case‑insensitive, whole words). Multiply by 'keyword_weight'.
+
+    • Sentiment score:
+
+        • If 's' is within the theme's 'sentiment_range', add 'sentiment_weight'.
+
+        • If 'sentiment_distance_penalty' is true, also add a bonus proportional to how well it fits (e.g., '1 - distance'), but here I keep it simple: just add the weight if in range, otherwise 0.
+
+3. Total score = keyword_score + sentiment_score.
+
+4. Pick the theme with the highest total score. If there's a tie, choose the one that appears first in the list (or I could add a priority order, but the list order works).
+
+    • Why these weights?
+        • 'keyword_weight = 10' ensures that even a single keyword match strongly favors that theme, fulfilling my desire for 'keyword_priority'.
+        • Sentiment acts as a tie‑breaker or a way to catch lines with no keywords.
+
+
+✅ Benefits : 
+    • Reduced overlap by combining similar themes (e.g., 'hard/aggressive/gritty' → 'hard').
+
+    • Preserved distinct moods that truly matter: 'hard', 'melancholic', 'reflective', 'smooth', 'confident', 'inspirational', 'playful', 'street' 'love'.
+
+    • Added genre hints (optional) to later connect with beat genres.
+
+    • Scoring system defined in the config – no hard‑coded priorities, just weights and ranges.
+
+    • Default Theme :
+        • "default_theme": "hard" – good fallback if no keywords and sentiment falls outside ranges.
