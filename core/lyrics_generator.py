@@ -34,7 +34,7 @@ LyricsGenerator.generate_full_lyrics()
 import sqlite3
 import random
 import pronouncing
-
+from collections import defaultdict
 
 
 
@@ -49,6 +49,7 @@ class LyricsGenerator:
         conn.row_factory = sqlite3.Row
         return conn
 
+    # ---------- Vocabulary methods ----------
     def get_theme_words(self, theme, min_freq=2, limit=200):
         """Retrieve words for a given theme with frequency >= min_freq."""
         with self._get_connection() as conn:
@@ -120,4 +121,109 @@ class LyricsGenerator:
             elif section == 'hook':
                 lines = self.generate_hook(theme, num_lines=bars_hook)
                 all_lines.extend(lines)
+        return all_lines
+
+    # ---------- Markov methods ----------
+    def load_markov_transitions(self, theme, prev_word):
+        """Return a list of (next_word, count) for given theme and prev_word."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT next_word, count FROM markov_transitions
+                WHERE theme = ? AND prev_word = ?
+            ''', (theme, prev_word))
+            return cursor.fetchall()    # list of (next_word, count)
+
+    def weighted_choice(self, items):
+        """items: list of (item, weight). Returns chosen item."""
+        total = sum(weight for _, weight in items)
+        r = random.uniform(0, total)
+        upto = 0
+        for item, weight in items:
+            upto += weight
+            if upto >= r:
+                return item
+        return items[-1][0]             # fallback
+    
+    def generate_line_markov(self, theme, min_words=4, max_words=8):
+        """Generate a line using bigram Markov model with weighted sampling."""
+        # Get all possible start words (prev_word = first word of bigram)
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT DISTINCT prev_word FROM markov_transitions WHERE theme = ?
+            ''', (theme,))
+            start_words = [row['prev_word'] for row in cursor.fetchall()]
+
+        if not start_words:
+            # Fallback to random vocabulary
+            return self.generate_line(self.get_theme_words(theme))
+
+        # Pick a random start word
+        start_word = random.choice(start_words)
+        words = [start_word]
+
+        for _ in range(max_words - 1):
+            prev = words[-1]
+            transitions = self.load_markov_transitions(theme, prev)
+            if not transitions:
+                break
+            next_word = self.weighted_choice(transitions)
+            words.append(next_word)
+            if len(words) >= max_words:
+                break
+
+        # Pad if too short
+        while len(words) < min_words:
+            theme_words = self.get_theme_words(theme)
+            if theme_words:
+                words.append(random.choice(theme_words))
+            else:
+                break
+
+        return ' '.join(words).capitalize()
+
+    def generate_rhyming_couplet_markov(self, theme, line1=None):
+        if line1 is None:
+            line1 = self.generate_line_markov(theme)
+        last_word = line1.split()[-1].lower()
+        rhymes = pronouncing.rhymes(last_word)
+        if not rhymes:
+            line2 = self.generate_line_markov(theme)
+        else:
+            rhyme_word = random.choice(rhymes)
+            line2 = self.generate_line_markov(theme)
+            # Replace last word with rhyme word
+            words = line2.split()
+            if words:
+                words[-1] = rhyme_word
+                line2 = ' '.join(words).capitalize()
+            else:
+                line2 = rhyme_word.capitalize()
+        return line1, line2
+
+    def generate_verse_markov(self, theme, num_bars=16, rhyme_scheme='AABB'):
+        lines = []
+        i = 0
+        while i < num_bars:
+            if rhyme_scheme == 'AABB':
+                line1, line2 = self.generate_rhyming_couplet_markov(theme)
+                lines.append(line1)
+                lines.append(line2)
+                i += 2
+            else:
+                lines.append(self.generate_line_markov(theme))
+                i += 1
+        return lines[:num_bars]
+
+    def generate_full_lyrics_markov(self, theme,structure='verse-hook-verse-hook', bars_verse=16, bars_hook=8):
+        sections = structure.split('-')
+        all_lines = []
+        for section in sections:
+            if section == 'verse':
+                lines = self.generate_verse_markov(theme, num_bars=bars_verse)
+                all_lines.extend(lines)
+            elif section == 'hook':
+                for _ in range(bars_hook):
+                    all_lines.append(self.generate_line_markov(theme, min_words=3, max_words=6))
         return all_lines
