@@ -8,48 +8,40 @@ Python application that generates beats and lyrics with an interactive, editable
 
 ## Overview
 
-**For beat generation:**  
+#### **For beat generation:**  
 **Think of the code as a car – it's fully built and ready to run.** 
 The SoundFonts are like gasoline; without them, the engine still runs (using a pygame fallback), but with the right fuel, it will roar with professional audio quality.  
 
 **For lyrics generation & voice generation:**  
-Like beat generation, The same concept will apply (build the Car & add any type of Gas).
+Like beat generation, The same concept applies – build the engine first, add the fuel (data) later.
 
-Beat & Lyrics Generator lets you:
+#### Beat & Lyrics Generator lets you:
 - **Generate a beat** – choose genre, theme, instrument, key, and tempo, and get a complete beat with chords, melody, and drums.
-- **Generate a full track** *(planned)*  – automatically produce a beat, lyrics, and vocals together.
+- **Generate a full track** *(planned)* – automatically produce a beat, lyrics, and vocals together.
 - **Edit everything** – after generation, you can regenerate any component individually: chord progression, lead melody, drum patterns (kick, snare, hi‑hat separately), lyrics structure, and voice.
 - **Save/load projects** – all generated data is stored in a local SQLite database for later retrieval.
 
 The GUI is currently under construction; we use a **command‑line interface (CLI)** to test and validate the core modules. Once the backend is polished, the GUI will be re‑integrated.
 
-This project started as an ambitious blueprint and has been refined into a realistic, phased development plan. I'm  currently focusing on an **English/US Hip‑hop MVP**, with plans to later add support for Moroccan Arabic (Darija) and more advanced voice synthesis.
+This project started as an ambitious blueprint and has been refined into a realistic, phased development plan. I'm currently focusing on an **English/US Hip‑hop MVP**, with plans to later add support for Moroccan Arabic (Darija) and more advanced voice synthesis.
 
 ---
 
-## Current Features (Phase 1 – Beat Generator)
+## Current Features (Phase 1 & 2 Completed)
 
-- **Chord progression generator**  
-  - Roman numeral templates per genre & theme (trap, drill, old‑school).  
-  - Uses `music21` to convert numerals to actual notes in any key.
+### Beat Generator
+- **Chord progression generator** – Roman numeral templates per genre & theme (trap, drill, old‑school). Uses `music21` to convert numerals to actual notes in any key.
+- **Melody generator** – Rule‑based: chord tones on strong beats, scale tones as passing notes. Avoids large leaps and pitch repetitions.
+- **Drum pattern generator** – Probabilistic 16‑step patterns per genre (kick, snare, hi‑hat, open hat) with independent regeneration.
+- **MIDI export & playback** – Combines all tracks into a single MIDI file. Two playback modes:
+  - **Pygame fallback** (low quality, works out‑of‑the‑box).
+  - **FluidSynth + SoundFont** (professional quality) – code ready; you provide the SoundFont ("gasoline").
 
-- **Melody generator**  
-  - Rule‑based: chord tones on strong beats, scale tones as passing notes.  
-  - Avoids large leaps and immediate pitch repetitions for more natural lines.
-
-- **Drum pattern generator**  
-  - Probabilistic 16‑step patterns per genre (kick, snare, hi‑hat, open hat).  
-  - Independent regeneration of each drum track.
-
-- **MIDI export & playback**  
-  - Combines chords, melody, and drums into a single MIDI file via `pretty_midi`.  
-  - Two playback modes:
-    - **Pygame fallback** (low quality, works out‑of‑the‑box).
-    - **FluidSynth + SoundFont** (professional quality) – *code is ready; you provide the SoundFont ("gasoline").*
-
-- **Command‑line interface**  
-  - `cli.py` lets you select parameters, generate a beat, save MIDI, and play it.  
-  - A temporary solution while the GUI is being refined.
+### Lyrics Generator
+- **Lyrics acquisition** – Three curated Kaggle hip‑hop datasets (no API limits, fully offline).
+- **Vocabulary extraction** – Theme‑based word frequency tables.
+- **Theme assignment** – Combined VADER sentiment + keyword scoring to classify lines into 8 themes (hard, melancholic, reflective, smooth, confident, inspirational, playful, street love).
+- **Markov chain generation** – Bigram model with weighted sampling produces coherent, theme‑aligned lyrics with rhyme support.
 
 ---
 
@@ -62,10 +54,10 @@ This project started as an ambitious blueprint and has been refined into a reali
 | Drum patterns            | Custom probabilistic grids             | ✅     |
 | Audio playback (fallback)| pygame                                 | ✅     |
 | High‑quality audio       | FluidSynth + custom SoundFonts         | ✅ (code ready; requires external SoundFont) |
-| Lyrics acquisition       | Kaggle datasets (no API)              | ✅ (imported) |
+| Lyrics acquisition       | Kaggle datasets (no API)              | ✅  |
 | Vocabulary extraction      | Custom regex + frequency counting              | ✅ |
 | Rhyme & generation      | pronouncing, custom Markov-inspired              | ✅ |
-| Sentiment analysis       | vaderSentiment / textblob              | ⬜ (Phase 2) |
+| Sentiment analysis/Theme assignment       | VADER sentiment + keyword matching              | ✅ |
 | Text‑to‑Speech           | gTTS / Amazon Polly                     | ⬜ (Phase 3) |
 | GUI                      | PySide6 + QML (paused)                  | ⬜ (will resume after core is solid) |
 | Database                 | SQLite3                                | ✅     |
@@ -95,11 +87,15 @@ Once the SoundFont is present, the CLI will automatically use FluidSynth for pla
 
 ## Usage (Current CLI)
 
+### Beat Generation :
+
 Run the beat generator from the command line:
 
 ```bash
 python cli.py
 ```
+
+Follow the prompts to enter genre, theme, key, and tempo. The program will generate a MIDI file and play it.  
 
 You will be prompted to enter:
 - **Genre**: trap / drill / old_school
@@ -112,47 +108,90 @@ The program then:
 - Saves a MIDI file (e.g., `beat_trap_hard_C_140.mid`).
 - Plays the MIDI using the best available audio method (FluidSynth if SoundFont found, otherwise pygame).
 
+### Lyrics Generation (test mode) :
+
+Run the lyrics generator from the command line:
+
+```bash
+python -m tests.test_markov_lyrics
+```
+
+This will output sample lyrics for different themes using the Markov generator.
+
 ---
 
 ## Project Structure *(Planned & Current)*
 
 ```
 beat-lyrics-generator/
-├── main.py                      # Application entry point
-├── core/                         # Core logic modules
-│   ├── beat_generator.py         # Beat generation (chords, melody, drums)
-│   ├── lyrics_generator.py       # Lyrics generation and structure
-│   ├── voice_synthesizer.py      # TTS, alignment, mixing
-│   └── midi_exporter.py          # MIDI creation and playback
-├── gui/                           # GUI related code
-│   ├── main_window.py             # Main window setup (PySide6)
-│   ├── qml/                       # QML UI components
+├── core/                             # Core logic modules
+│   ├── __init__.py
+│   ├── chord_generator.py
+│   ├── drum_generator.py
+│   ├── lyrics_generator.py
+│   ├── melody_generator.py
+│   └── midi_exporter.py              # MIDI creation and playback
+│
+├── gui/                              # GUI related code
+│   ├── main_window.py                # Main window setup (PySide6)
+│   ├── qml/                          # QML UI components
 │   │   ├── BeatEditor.qml
 │   │   ├── FullTrackView.qml
 │   │   └── ...
-│   └── controllers/               # Controllers to connect UI and core
+│   └── controllers/                  # Controllers to connect UI and core
 │       ├── beat_controller.py
 │       ├── lyrics_controller.py
 │       └── ...
-├── data/                           # Data management
-│   ├── database.py                 # SQLite connection and queries
-│   ├── models.py                   # Python data classes (Project, Beat, etc.)
-│   └── templates/                   # JSON seed files
-│       ├── chord_progressions.json
-│       ├── drum_patterns.json
-│       └── instruments.json
-├── scripts/                         # Utility scripts
-│   ├── init_db.py                   # Create tables and seed data
-│   ├── fetch_lyrics.py              # Genius API lyric fetcher
-│   └── export_midi.py               # Example MIDI export
+│
+├── data/                             # Database and data files mangement
+│   ├── raw_lyrics/                   # Kaggle datasets
+│   │   ├── rap_lyrics
+│   │   │   └── all_lyrics.csv
+│   │   ├── rap_lyrics_text
+│   │   │   └── 38 text file
+│   │   └── song_lyrics
+│   │       └── lyrics_raw.csv
+│   ├── templates/                    # JSON seed files
+│   │   ├── chord_progressions.json
+│   │   ├── drum_patterns.json
+│   │   └── instruments.json
+│   ├── __init__.py
+│   ├── beat_lyrics.db                # SQLite database
+│   ├── database.py                   # SQLite connection and queries
+│   ├── models.py
+│   ├── stopwords.txt                 # Stopwords (I didn't use it yet)
+│   └── theme_config.json             # theme config (hard, street love, etc.)
+│
+├── Notes/                            # NO NEED TO READ (Just a bunch of notes)
+│
 ├── resources/                        # SoundFonts, icons, etc.
-│   └── default_soundfont.sf2
-├── tests/                             # Unit tests
-│   ├── test_beat_generator.py
-│   ├── test_lyrics_generator.py
-│   └── ...
-├── requirements.txt                   # Python dependencies
-└── README.md                          # This file
+│   ├── lyrics_datasets_resources
+│   └── README.md                     # Instructions for obtaining SoundFonts
+│
+├── scripts/                          # Utility scripts
+│   ├── assign_themes.py
+│   ├── build_markov.py
+│   ├── build_vocabulary.py
+│   └── import_all_lyrics.py
+│
+├── tests/                            # Unit tests
+│   ├── __init__.py
+│   ├── test_chords.py
+│   ├── test_drums.py
+│   ├── test_lyrics.py
+│   ├── test_markov_lyrics.py
+│   ├── test_melody.py
+│   └── test_midi.py
+│   
+├── .env.example
+├── .gitignore
+├── cli.py                            # Command‑line beat generator
+├── init_db.py
+├── init_lyrics_db.py
+├── main.py                           # (placeholder for future GUI)
+├── requirements.txt                  # Python dependencies
+├── run_test.py                       # Run the (Unit tests)
+└── README.md                         # This file
 ```
 
 ---
@@ -174,8 +213,8 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 7b | **Bug fixes and validation of Phase 1** || ✅ |
 | **2: Lyrics Generator** |
 | 8 | Import Kaggle lyrics datasets, build vocabulary, generate rhyming lines || ✅ |
-| 9 | Vocabulary refinement (sentiment analysis, theme assignment)  || ✅ |
-| 10 | Improved line generation (Markov chains) || ⬜ |
+| 9 | Vocabulary refinement (sentiment analysis/theme assignment)  || ✅ |
+| 10 | Markov chain bigram model for improved line generation || ✅ |
 | 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) || ⬜ |
 | 12 | Theme matching between beat and lyrics || ⬜ |
 | **3: Voice Synthesis** |
@@ -195,18 +234,21 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 
 - [music21](http://web.mit.edu/music21/)
 - [pretty_midi](https://github.com/craffel/pretty-midi)
-- [FluidSynth](http://www.fluidsynth.org/) *(planned)*
-- All open‑source contributors
+- [FluidSynth](http://www.fluidsynth.org/)
+- [VADER Sentiment](https://github.com/cjhutto/vaderSentiment)
+- [pronouncing](https://github.com/aparrish/pronouncingpy)
+- All open‑source contributors and Kaggle dataset providers
 
 ---
 
 **Note:** The GUI is temporarily on hold to focus on core functionality and audio quality. The CLI ensures we can test and use the generator while the UI matures.
 
-**Note**: This project uses the Genius API to fetch lyrics. Please respect their [terms of service](https://genius.com/static/terms) and rate limits (free tier ~50 requests/day). For larger usage, consider caching results or using alternative lyric datasets.
+**Note**: This project will uses the Genius API to fetch lyrics. Please respect their [terms of service](https://genius.com/static/terms) and rate limits (free tier ~50 requests/day). For larger usage, consider caching results or using alternative lyric datasets.
 
-**PS**: If I find a free, legal way to get data, I will mention it and use it later (like on Kaggle or other open-source platforms), or maybe I will make my own, but that will take some time. To be honest, don’t rely on that, because I have to respect the artist’s work and effort. (I have Done it ✅ *read below*)
+**PS**: If I find a free, legal way to get data, I will mention it and use it later (like on Kaggle or other open-source platforms), or maybe I will make my own, but that will take some time. To be honest, don’t rely on that, because I have to respect the artist’s work and effort. (Update: I have Done it ✅ *read below*)
 
-**Lyrics Data:** Instead of relying on live APIs, we've integrated three curated Kaggle hip-hop lyric datasets. The data is included in the repository, so you can generate lyrics offline with zero API limits. All preprocessing and vocabulary extraction are handled by the included scripts.
+**Lyrics Data:** Instead of relying on live APIs, I've integrated three curated Kaggle hip-hop lyric datasets. The data is included in the repository, so you can generate lyrics offline with zero API limits. All preprocessing and vocabulary extraction are handled by the included scripts.
+(you will find the datasets info with providers name in *'resources/lyrics_datasets_resources'*)
 
 ---
 
