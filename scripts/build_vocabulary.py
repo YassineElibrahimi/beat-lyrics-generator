@@ -42,15 +42,15 @@ def build_vocabulary():
     conn    = get_connection()
     cursor  = conn.cursor()
 
-    # Fetch all lines (theme is currently 'hard' for all)
-    cursor.execute('SELECT text FROM lines')
+    # Fetch all lines  with their themes
+    cursor.execute('SELECT theme, text FROM lines WHERE theme IS NOT NULL')
     rows = cursor.fetchall()
 
-    word_counts = {}
-    theme       = 'hard'  # placeholder – we'll improve later
+    word_counts = {}        # (theme, word) -> count
 
     for row in rows:
-        text    = row['text'].lower()
+        theme    = row['theme']
+        text     = row['text'].lower()
         words   = re.findall(r'\b[a-z]+\b', text)
         for word in words:
             if len(word) < 3:
@@ -64,7 +64,7 @@ def build_vocabulary():
         cursor.execute('''
             INSERT INTO vocabulary (theme, word, frequency)
             VALUES (?, ?, ?)
-        ''', (theme, word, count))
+            ''', (theme, word, count))
 
     conn.commit()
     conn.close()
