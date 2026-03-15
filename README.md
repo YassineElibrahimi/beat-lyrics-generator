@@ -8,7 +8,12 @@ Python application that generates beats and lyrics with an interactive, editable
 
 ## Overview
 
-**Think of the code as a car – it's fully built and ready to run.** The SoundFonts are like gasoline; without them, the engine still runs (using a pygame fallback), but with the right fuel, it will roar with professional audio quality
+**For beat generation:**  
+**Think of the code as a car – it's fully built and ready to run.** 
+The SoundFonts are like gasoline; without them, the engine still runs (using a pygame fallback), but with the right fuel, it will roar with professional audio quality.  
+
+**For lyrics generation & voice generation:**  
+Like beat generation, The same concept will apply (build the Car & add any type of Gas).
 
 Beat & Lyrics Generator lets you:
 - **Generate a beat** – choose genre, theme, instrument, key, and tempo, and get a complete beat with chords, melody, and drums.
@@ -169,7 +174,7 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 7b | **Bug fixes and validation of Phase 1** || ✅ |
 | **2: Lyrics Generator** |
 | 8 | Import Kaggle lyrics datasets, build vocabulary, generate rhyming lines || ✅ |
-| 9 | Vocabulary refinement (sentiment analysis, theme assignment)  || ⬜ |
+| 9 | Vocabulary refinement (sentiment analysis, theme assignment)  || ✅ |
 | 10 | Improved line generation (Markov chains) || ⬜ |
 | 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) || ⬜ |
 | 12 | Theme matching between beat and lyrics || ⬜ |
@@ -201,7 +206,7 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 
 **PS**: If I find a free, legal way to get data, I will mention it and use it later (like on Kaggle or other open-source platforms), or maybe I will make my own, but that will take some time. To be honest, don’t rely on that, because I have to respect the artist’s work and effort. (I have Done it ✅ *read below*)
 
-Lyrics Data: Instead of relying on live APIs, we've integrated three curated Kaggle hip-hop lyric datasets. The data is included in the repository, so you can generate lyrics offline with zero API limits. All preprocessing and vocabulary extraction are handled by the included scripts.
+**Lyrics Data:** Instead of relying on live APIs, we've integrated three curated Kaggle hip-hop lyric datasets. The data is included in the repository, so you can generate lyrics offline with zero API limits. All preprocessing and vocabulary extraction are handled by the included scripts.
 
 ---
 

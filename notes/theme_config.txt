@@ -30,3 +30,150 @@
 
     • Default Theme :
         • "default_theme": "hard" – good fallback if no keywords and sentiment falls outside ranges.
+
+
+input   :
+    (venv) PS C:beat-lyrics-generator> python -m scripts.assign_themes
+
+output  :
+    • Processing 173320 lines...
+    • --- Themes Assignment Statistics ---
+    • melancholic   : 75176 lines, avg sentiment = -0.009
+    • hard          : 43482 lines, avg sentiment = -0.478
+    • reflective    : 25869 lines, avg sentiment = 0.173
+    • smooth        : 21779 lines, avg sentiment = 0.467
+    • inspirational : 2173 lines, avg sentiment = 0.209
+    • confident     : 1797 lines, avg sentiment = 0.188
+    • playful       : 1711 lines, avg sentiment = 0.057
+    • street love   : 1333 lines, avg sentiment = 0.235
+    • Theme assignment complete.
+
+input   :
+    • (venv) PS C:beat-lyrics-generator> python -m scripts.build_vocabulary
+
+output  :
+    • Vocabulary built successfully.
+
+
+
+
+input   :
+    • (venv) PS C:beat-lyrics-generator> python -m tests.test_lyrics
+
+output  :
+    --- Theme : hard---
+    Fuck wanna die while
+    Here fuck down bout fuck yeah only deihl
+    Him are wanna night rap she here wanna
+    Can about too dead how dominicana
+    Same wrong should about
+    Young over nah girl run stoute
+    Before gonna name long
+    Wanna fucked hell where one bad drepung
+    Big from same
+    Take bad fake god
+    People came head some
+    Our motherfucker this
+    Everybody want new block high keep how then
+    Right world hell nothin just said rap kren
+    Now she people mad
+    Mad than who crazy pussy people lad
+    People wrong bad baby
+    Hate have talkin everybody how cabey
+    Low bout ain will came bout yeah where
+    Talkin much watch mad hit when hell clair
+    Not make made don broke
+    Stuck around know
+    Stay bitches day big first fake
+    Fire block really where
+
+    --- Theme : melancholic---
+    Every right can with bout home you hey
+    But your had big banpais
+    Won not ain wait eyes around
+    Wanna out him give will came round
+    Can came hoes when
+    Head she come two gwen
+    High stay bout get
+    Streets heart should pret
+    Look little stay mama
+    Call nothing off left
+    Have everybody our left really hold
+    Keep streets niggas pain
+    Got gonna made gettin let huh
+    But but stay only dah
+    Right while try hit gonna live since been
+    Off ain always than mcguinn
+    You again boy out
+    Name ain his but stout
+    Black let tryna face young
+    Keep really wait ain back when bout among
+    Baby not through alone gettin
+    Take ooh get long lord they
+    Used everything way much bout
+    Boy was something turn down for
+
+    --- Theme : smooth---
+    Really was what who alright save
+    Let how ain long friend brave
+    Sweet told high feel cause save make
+    Make beautiful long quake
+    Came night gettin party perfect know live
+    Never thank here lord jive
+    Give thing baby friends all
+    Free shine show watch these walle
+    She sweet make
+    Yeah dance here perfect off
+    Yes okay best
+    The high world boy ever chill
+    Girl fame beautiful hit thing nigga
+    Shine pussy then woo heaven one
+    Show always people need real the way
+    Care are gon show would into though mae
+    Much niggas thing people can
+    Chill give never like whan
+    Hey stay die there nice
+    Too back much you everybody little guice
+    Around from came
+    But how bout there came pussy
+    Fucking old stay boy true
+    Alright ever made want how might
+
+    --- Theme : confident---
+    Day flex freestyle alive cause have check for
+    New out fuck les dohr
+    Pushin bass back these game rap
+    Ass old new slap
+    Hood down them check
+    About better die big want freestyle that quek
+    Two where live feel will play
+    Gettin why name nikkei
+    Real they est
+    Give her still
+    Money black energy used not
+    Him about got
+    Big your damn yeah rich put
+    Call flex him underfoot
+    There want made old
+    Lil about greatest booska full ain that doled
+    Okay gettin black hood boom why
+    This people through die slye
+    Where badoom yeah gon
+    Your also top these drip come
+    Only super won freestyle hit
+    Bad will people est super
+    Drop put drill how still
+    Badoom two have drip her way
+
+Theme Assignment Statistics – Check:
+    • The slight mismatches are expected given the simplicity of the scoring system. I can later fine‑tune by adjusting sentiment ranges or keyword lists. For now, it's a solid baseline.
+
+Theme	     |  Lines | Avg Sentiment | Target Range |   Verdict     |
+melancholic	 | 75,176 |     -0.009    | [-0.3, 0.1]	 | ✅ – slightly above neutral, but still within. Many "melancholic" lines may be neutral or slightly positive due to word choice.|
+hard	     | 43,482 |     -0.478	  | [-1.0, -0.1] | ✅ – solidly negative, perfect.|
+reflective	 | 25,869 |     +0.173    | [-0.2, 0.4]  | ✅ – well within range.|
+smooth	     | 21,779 |     +0.467	  | [0.1, 0.9]	 | ✅ – nice positive vibe.|
+inspirational| 2,173  |     +0.209	  | [0.2, 1.0]	 | ⚠️ – slightly below 0.2, but close; may include some neutral lines.|
+confident	 | 1,797  |     +0.188	  | [0.3, 1.0]	 | ⚠️ – a bit low; keyword weighting may be pulling in less-positive lines.|
+playful	     | 1,711  |     +0.057	  | [0.1, 1.0]	 | ⚠️ – average near neutral; some lines may be misclassified.|
+street love	 | 1,333  |     +0.235	  | [-0.1, 0.7]  | ✅ – fine.|

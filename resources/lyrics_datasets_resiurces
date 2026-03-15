@@ -1,0 +1,74 @@
+Link:
+    https://www.kaggle.com/datasets/elizzyliu/song-lyrics
+
+Name of the post and provider:
+    Song Lyrics by LIZZIE.
+
+About Dataset:
+    Top 1000 rap & hip hop: https://iainthegreat.wordpress.com/2020/01/11/top-1000-hip-hop-and-rap-songs/
+
+Content:
+    1 file:
+        all_lyrics.csv
+    4 columns:
+        Song, artist, type, lyrics
+
+Lyrics data source:
+    Genius API, genius.com
+
+Size:
+    (15.39 MB)
+
+Notes:
+    The majority of songs in this dataset are in English. However, there are some songs in other languages.
+
+---
+
+link:
+    https://www.kaggle.com/datasets/rikdifos/rap-lyrics
+
+Name of the post and provider:
+    Hip-Hop Encounters Data Science by MoneyMan · "Updated a year ago from now(03/13/26)"
+
+About Dataset:
+    rap music lyrics from 36 famous rappers
+
+Content:
+    1 zip file which contain 38 TXT files
+
+Lyrics data source:
+    None
+
+Size:
+    (7.32 MB)
+
+Notes:
+    None
+
+---
+
+link:
+    https://www.kaggle.com/datasets/ceebloop/rap-lyrics-for-nlp
+
+Name of the post and provider:
+    Rap Lyrics Dataset by CeeBloop · "Updated 2 years ago from now(03/13/26)"
+
+About Dataset:
+    This dataset contains lyrics from 11 different artists including: Drake, J. Cole, Kendrick Lamar, Eminem, Nas, Skepta, Rapsody, Nicki Minaj, Dave, 2Pac, and Future.
+
+content:
+    1 file:
+        lyrics_raw.csv
+    4 columns:
+        track_name, artist, raw_lyrics, artist_verses
+
+Lyrics data source:
+    All data was compiled using Spotify's API and Genius' API.
+
+Size:
+    (3.53 MB)
+
+Notes:
+    Some entires in raw_lyrics may contain a different formatting structure to others, so text consistency will vary.
+
+---
