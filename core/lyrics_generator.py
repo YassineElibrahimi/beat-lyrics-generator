@@ -52,11 +52,39 @@ class LyricsGenerator:
         return conn
 
     def _load_theme_config(self):
-        """Load and cache theme configuration from JSON file."""
+        """
+        Load and cache theme configuration from JSON file.
+        Provides fallback if file missing or invalid.
+        """
         if self._theme_config is None:
             config_path = os.path.join('data', 'theme_config.json')
-            with open(config_path, 'r') as f:
-                self._theme_config = json.load(f)
+            # Default minimal config in case file is missing
+            default_config = {
+                "themes": {
+                    "hard": {
+                        "sentiment_range": [-1.0, -0.1],
+                        "keywords": ["grind", "hustle"],
+                        "genres": ["trap", "drill"]},
+                    "melancholic": {
+                        "sentiment_range": [-0.3, 0.1],
+                        "keywords": ["lost", "pain"],
+                        "genres": ["any"]},
+                    "smooth": {
+                        "sentiment_range": [0.1, 0.9],
+                        "keywords": ["vibe", "love"],
+                        "genres": ["trap", "boom-bap"]}
+                },
+                "default_theme": "hard"
+            }
+            try:
+                with open(config_path, 'r') as f:
+                    self._theme_config = json.load(f)
+            except FileNotFoundError:
+                print(f"Warning: Theme config not found at {config_path}. Using hardcoded defaults.")
+                self._theme_config = default_config
+            except json.JSONDecodeError:
+                print(f"Error: Theme config at {config_path} is invalid JSON. Using hardcoded defaults.")
+                self._theme_config = default_config
         return self._theme_config
 
     def get_themes_for_genre(self, genre):
@@ -80,21 +108,29 @@ class LyricsGenerator:
     # ---------- Vocabulary methods ----------
     def get_theme_words(self, theme, min_freq=2, limit=200):
         """Retrieve words for a given theme with frequency >= min_freq."""
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT word FROM vocabulary
-                WHERE theme = ? AND frequency >= ?
-                ORDER BY frequency DESC
-                LIMIT ?
-            ''', (theme, min_freq, limit))
-            rows = cursor.fetchall()
-            return [row['word'] for row in rows]
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT word FROM vocabulary
+                    WHERE theme = ? AND frequency >= ?
+                    ORDER BY frequency DESC
+                    LIMIT ?
+                ''', (theme, min_freq, limit))
+                rows = cursor.fetchall()
+                return [row['word'] for row in rows]
+        except sqlite3.Error as e:
+            print(f"Database error in get_theme_words: {e}")
+            return []
 
     def generate_line(self, theme_words, length_range=(4, 8)):
         """Generate a single line by randomly selecting words from theme vocabulary."""
-        num_words   = random.randint(*length_range)
-        line_words  = random.choices(theme_words, k=num_words)
+        if not theme_words:
+            return "[no words available]"
+        num_words = random.randint(*length_range)
+        # Ensure we don't try to choose more words than available
+        k = min(num_words, len(theme_words))
+        line_words = random.choices(theme_words, k=k)
         line = ' '.join(line_words)
         return line.capitalize()
 
@@ -130,7 +166,7 @@ class LyricsGenerator:
         return lines[:num_bars]
 
     def generate_hook(self, theme, num_lines=4):
-        """Generate a hook (chorus) – can be shorter lines."""
+        """Generate a hook (chorus) - can be shorter lines."""
         theme_words = self.get_theme_words(theme)
         hook = []
         for _ in range(num_lines):
@@ -154,13 +190,17 @@ class LyricsGenerator:
     # ---------- Markov methods ----------
     def load_markov_transitions(self, theme, prev_word):
         """Return a list of (next_word, count) for given theme and prev_word."""
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT next_word, count FROM markov_transitions
-                WHERE theme = ? AND prev_word = ?
-            ''', (theme, prev_word))
-            return cursor.fetchall()    # list of (next_word, count)
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT next_word, count FROM markov_transitions
+                    WHERE theme = ? AND prev_word = ?
+                ''', (theme, prev_word))
+                return cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"Database error in load_markov_transitions: {e}")
+            return []
 
     def weighted_choice(self, items):
         """items: list of (item, weight). Returns chosen item."""
@@ -171,17 +211,21 @@ class LyricsGenerator:
             upto += weight
             if upto >= r:
                 return item
-        return items[-1][0]             # fallback
-    
+        return items[-1][0]  # fallback
+
     def generate_line_markov(self, theme, min_words=4, max_words=8):
         """Generate a line using bigram Markov model with weighted sampling."""
         # Get all possible start words (prev_word = first word of bigram)
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT DISTINCT prev_word FROM markov_transitions WHERE theme = ?
-            ''', (theme,))
-            start_words = [row['prev_word'] for row in cursor.fetchall()]
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT DISTINCT prev_word FROM markov_transitions WHERE theme = ?
+                ''', (theme,))
+                start_words = [row['prev_word'] for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            print(f"Database error in generate_line_markov (start words): {e}")
+            start_words = []
 
         if not start_words:
             # Fallback to random vocabulary
