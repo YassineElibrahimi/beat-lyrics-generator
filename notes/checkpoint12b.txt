@@ -1,0 +1,60 @@
+
+# 📋 12b Polish Checklist:  (✅ = completed, ⬜ = pending)
+
+1. Error Handling & Edge Cases
+
+- Handle missing theme config file gracefully (fallback to hardcoded defaults) ⬜
+
+- Handle empty vocabulary for a theme (fallback to default theme) ⬜
+
+- Handle missing Markov transitions (already has fallback to random words) ⬜
+
+- Add try/except blocks for file I/O and database queries ⬜
+
+- Add logging for debugging (optional) ⬜
+
+2. Markov Model Improvements
+
+- Add start-of-sequence and end-of-sequence markers for better line generation ⬜
+
+- Consider trigram model for longer-range coherence (optional, can be later) ⬜
+
+- Filter low-frequency transitions (e.g., keep only transitions with count >= 2) ⬜
+
+- Add temperature parameter for randomness control ⬜
+
+3. Theme Assignment Refinements
+
+- Review theme statistics from Checkpoint 9 and adjust sentiment ranges or keywords if needed ⬜
+
+- Add more genre-specific keywords to improve theme matching ⬜
+
+- Consider adding theme priority (e.g., if multiple themes match a genre, which one to prefer?) ⬜
+
+4. Vocabulary Improvements
+
+- Add stopword filtering to remove common words (use data/stopwords.txt) ⬜
+
+- Consider stemming/lemmatization for better word grouping (optional) ⬜
+
+- Add minimum frequency threshold for vocabulary words (already have min_freq) ⬜
+
+5. Code Organization & Documentation
+
+- Add docstrings to all methods (some are missing) ⬜
+
+- Add comments for complex logic ⬜
+
+- Create a config.py or centralize constants (db path, config paths) ⬜
+
+- Ensure consistent naming conventions ⬜
+
+6. Testing Enhancements
+
+- Add more comprehensive tests for edge cases ⬜
+
+- Test with missing database tables ⬜
+
+- Test with empty datasets ⬜
+
+- Add performance benchmarks (optional) ⬜

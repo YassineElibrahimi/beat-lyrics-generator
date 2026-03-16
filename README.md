@@ -215,8 +215,9 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 8 | Import Kaggle lyrics datasets, build vocabulary, generate rhyming lines || ✅ |
 | 9 | Vocabulary refinement (sentiment analysis/theme assignment)  || ✅ |
 | 10 | Markov chain bigram model for improved line generation || ✅ |
-| 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) || ⬜ |
-| 12 | Theme matching between beat and lyrics || ⬜ |
+| 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) | The core first, GUI later (Sorry, you can test with CLI for now)| ⬜ |
+| 12 | Theme matching between beat and lyrics || ✅ |
+| 12b | Polish & Refinements | I have make a checklist *(check Notes/checkpoint12b)*| ⬜ |
 | **3: Voice Synthesis** |
 | 13 | TTS integration (gTTS) with male/female toggle || ⬜ |
 | 14 | Syllabification and beat alignment || ⬜ |
