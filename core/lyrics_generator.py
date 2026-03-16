@@ -34,13 +34,15 @@ LyricsGenerator.generate_full_lyrics()
 import sqlite3
 import random
 import pronouncing
-from collections import defaultdict
+import json
+import os
 
 
 
 class LyricsGenerator:
     def __init__(self, db_path='data/beat_lyrics.db', seed=None):
         self.db_path = db_path
+        self._theme_config = None
         if seed:
             random.seed(seed)
 
@@ -48,6 +50,32 @@ class LyricsGenerator:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
+
+    def _load_theme_config(self):
+        """Load and cache theme configuration from JSON file."""
+        if self._theme_config is None:
+            config_path = os.path.join('data', 'theme_config.json')
+            with open(config_path, 'r') as f:
+                self._theme_config = json.load(f)
+        return self._theme_config
+
+    def get_themes_for_genre(self, genre):
+        """
+        Return a list of theme names that match the given genre.
+        A theme matches if its 'genres' list contains the genre or 'any'.
+        """
+        config = self._load_theme_config()
+        matching_themes = []
+        for theme_name, theme_data in config['themes'].items():
+            genres = theme_data.get('genres', [])
+            if genre in genres or 'any' in genres:
+                matching_themes.append(theme_name)
+        return matching_themes
+
+    def get_default_theme(self):
+        """Return the default theme from config."""
+        config = self._load_theme_config()
+        return config.get('default_theme', 'hard')
 
     # ---------- Vocabulary methods ----------
     def get_theme_words(self, theme, min_freq=2, limit=200):
@@ -202,7 +230,25 @@ class LyricsGenerator:
                 line2 = rhyme_word.capitalize()
         return line1, line2
 
-    def generate_verse_markov(self, theme, num_bars=16, rhyme_scheme='AABB'):
+    def generate_verse_markov(self, theme=None, genre=None, num_bars=16, rhyme_scheme='AABB'):
+        """
+        Generate a verse using Markov chains.
+        Either theme or genre must be provided.
+        If genre is given, pick a random matching theme.
+        """
+        if theme is None and genre is None:
+            raise ValueError("Either theme or genre must be provided")
+
+        # Determine which theme to use
+        if genre is not None:
+            matching_themes = self.get_themes_for_genre(genre)
+            if not matching_themes:
+                # Fallback to default theme
+                theme = self.get_default_theme()
+                print(f"Warning: No themes match genre '{genre}'. Using default theme: {theme}")
+            else:
+                theme = random.choice(matching_themes)
+
         lines = []
         i = 0
         while i < num_bars:
@@ -216,12 +262,28 @@ class LyricsGenerator:
                 i += 1
         return lines[:num_bars]
 
-    def generate_full_lyrics_markov(self, theme,structure='verse-hook-verse-hook', bars_verse=16, bars_hook=8):
+    def generate_full_lyrics_markov(self, theme=None, genre=None, structure='verse-hook-verse-hook', bars_verse=16, bars_hook=8):
+        """
+        Generate full lyrics using Markov.
+        Either theme or genre must be provided.
+        """
+        if theme is None and genre is None:
+            raise ValueError("Either theme or genre must be provided")
+
+        # Determine which theme to use
+        if genre is not None:
+            matching_themes = self.get_themes_for_genre(genre)
+            if not matching_themes:
+                theme = self.get_default_theme()
+                print(f"Warning: No themes match genre '{genre}'. Using default theme: {theme}")
+            else:
+                theme = random.choice(matching_themes)
+
         sections = structure.split('-')
         all_lines = []
         for section in sections:
             if section == 'verse':
-                lines = self.generate_verse_markov(theme, num_bars=bars_verse)
+                lines = self.generate_verse_markov(theme=theme, num_bars=bars_verse)
                 all_lines.extend(lines)
             elif section == 'hook':
                 for _ in range(bars_hook):
