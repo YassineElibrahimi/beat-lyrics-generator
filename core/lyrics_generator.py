@@ -261,23 +261,36 @@ class LyricsGenerator:
 
         return ' '.join(words).capitalize()
 
-    def generate_rhyming_couplet_markov(self, theme, line1=None, temperature=1.0):
+    def generate_rhyming_couplet_markov(self, theme, line1=None, temperature=1.0, max_attempts=5):
+        """
+        Generate two lines that rhyme (AABB scheme) using Markov chains.
+        Tries up to max_attempts to generate a second line that naturally ends
+        with a word that rhymes with the first line's last word.
+        Falls back to forced replacement if unsuccessful.
+        """
         if line1 is None:
             line1 = self.generate_line_markov(theme, temperature=temperature)
-        last_word = line1.split()[-1].lower()
-        rhymes = pronouncing.rhymes(last_word)
-        if not rhymes:
-            line2 = self.generate_line_markov(theme, temperature=temperature)
+        
+        target_word = line1.split()[-1].lower()
+        rhymes = pronouncing.rhymes(target_word)
+        valid_endings = set([target_word] + rhymes)  # includes the original word
+        
+        # Try to generate a line that naturally ends with a rhyming word
+        for attempt in range(max_attempts):
+            line2_candidate = self.generate_line_markov(theme, temperature=temperature)
+            last = line2_candidate.split()[-1].lower()
+            if last in valid_endings:
+                return line1, line2_candidate
+        
+        # Fallback: force a rhyme by replacing the last word
+        rhyme_word = random.choice(rhymes) if rhymes else target_word
+        line2 = self.generate_line_markov(theme, temperature=temperature)
+        words = line2.split()
+        if words:
+            words[-1] = rhyme_word
+            line2 = ' '.join(words).capitalize()
         else:
-            rhyme_word = random.choice(rhymes)
-            line2 = self.generate_line_markov(theme, temperature=temperature)
-            # Replace last word with rhyme word
-            words = line2.split()
-            if words:
-                words[-1] = rhyme_word
-                line2 = ' '.join(words).capitalize()
-            else:
-                line2 = rhyme_word.capitalize()
+            line2 = rhyme_word.capitalize()
         return line1, line2
 
     def generate_verse_markov(self, theme=None, genre=None, num_bars=16, rhyme_scheme='AABB', temperature=1.0):
