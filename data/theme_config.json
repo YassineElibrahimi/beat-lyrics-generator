@@ -2,43 +2,51 @@
     "themes": {
         "hard": {
             "sentiment_range": [-1.0, -0.1],
-            "keywords": ["grind", "hustle", "fight", "street", "beef", "gun", "war", "rage", "revenge", "kill", "destroy", "gang", "block", "trap"],
-            "genres": ["trap", "drill"]
+            "keywords": ["grind", "hustle", "fight", "street", "beef", "gun", "war", "rage", "revenge", "kill", "destroy", "gang", "block", "trap", "opp", "opps", "slide", "bando", "shooters", "steppa", "strap", "drillin", "ambush"],
+            "genres": ["trap", "drill"],
+            "priority": 1
         },
         "melancholic": {
             "sentiment_range": [-0.3, 0.1],
             "keywords": ["lost", "pain", "alone", "tears", "hurt", "cry", "broken", "heart", "sad", "regret", "lonely", "struggle"],
-            "genres": ["any"]
+            "genres": ["any"],
+            "priority": 5
         },
         "reflective": {
             "sentiment_range": [-0.2, 0.4],
-            "keywords": ["think", "remember", "life", "journey", "learn", "truth", "change", "past", "grow", "time", "mind", "story"],
-            "genres": ["boom-bap", "any"]
+            "keywords": ["think", "remember", "life", "journey", "learn", "truth", "change", "past", "grow", "time", "mind", "story", "cipher", "boom bap", "scratch", "mic check", "classic", "storytelling", "punchlines", "metaphor"],
+            "genres": ["boom-bap", "any"],
+            "priority": 4
         },
         "smooth": {
             "sentiment_range": [0.1, 0.9],
             "keywords": ["vibe", "groove", "chill", "relax", "love", "shine", "money", "party", "dance", "fun", "smooth", "wave", "sunset"],
-            "genres": ["trap", "boom-bap"]
+            "genres": ["trap", "boom-bap"],
+            "priority": 7
         },
         "confident": {
             "sentiment_range": [0.3, 1.0],
             "keywords": ["king", "boss", "winner", "rich", "greatest", "legend", "champion", "top", "elite", "drip", "flex", "racks", "goat"],
-            "genres": ["trap", "drill", "boom-bap"]
+            "genres": ["trap", "drill", "boom-bap"],
+            "priority": 2
         },
         "inspirational": {
             "sentiment_range": [0.2, 1.0],
             "keywords": ["rise", "dream", "succeed", "believe", "overcome", "hope", "future", "achieve", "power", "shine", "strong"],
-            "genres": ["any"]
+            "genres": ["any"],
+            "priority": 6
         },
         "playful": {
             "sentiment_range": [0.1, 1.0],
             "keywords": ["joke", "laugh", "fun", "party", "dance", "smile", "game", "cheer", "clap", "lit", "turn up"],
-            "genres": ["trap", "boom-bap"]
+            "genres": ["trap", "boom-bap"],
+            "priority": 8
         },
         "street love": {
             "sentiment_range": [-0.1, 0.7],
             "keywords": ["ride or die", "loyal", "fam", "love", "trust", "crew", "heart", "hold you down", "loyalty", "bond"],
-            "genres": ["any"]
+            "genres": ["any"],
+            "priority": 3
         }
     },
     "default_theme": "hard",

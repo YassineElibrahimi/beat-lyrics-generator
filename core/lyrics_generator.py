@@ -104,6 +104,29 @@ class LyricsGenerator:
         config = self._load_theme_config()
         return config.get('default_theme', 'hard')
 
+    def choose_theme_by_priority(self, themes):
+        """
+        Given a list of theme names, return one chosen randomly
+        with probability weighted by priority (lower number = higher weight).
+        If a theme has no priority, default to 5.
+        """
+        config = self._load_theme_config()
+        weights = []
+        for theme in themes:
+            priority = config['themes'].get(theme, {}).get('priority', 5)
+            # Convert priority to weight: lower priority = higher weight
+            # Use max_priority + 1 - priority, with max_priority = 10
+            weight = 11 - min(priority, 10)
+            weights.append(weight)
+        total = sum(weights)
+        r = random.uniform(0, total)
+        upto = 0
+        for theme, w in zip(themes, weights):
+            upto += w
+            if upto >= r:
+                return theme
+        return themes[-1]  # fallback
+
     # ---------- Vocabulary methods ----------
     def get_theme_words(self, theme, min_freq=2, limit=200):
         """Retrieve words for a given theme with frequency >= min_freq."""
@@ -318,7 +341,7 @@ class LyricsGenerator:
                 theme = self.get_default_theme()
                 print(f"Warning: No themes match genre '{genre}'. Using default theme: {theme}")
             else:
-                theme = random.choice(matching)
+                theme = self.choose_theme_by_priority(matching)
 
         lines = []
         i = 0
@@ -348,7 +371,7 @@ class LyricsGenerator:
                 theme = self.get_default_theme()
                 print(f"Warning: No themes match genre '{genre}'. Using default theme: {theme}")
             else:
-                theme = random.choice(matching)
+                theme = self.choose_theme_by_priority(matching)
 
         sections = structure.split('-')
         all_lines = []

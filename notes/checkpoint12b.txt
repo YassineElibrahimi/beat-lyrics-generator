@@ -27,9 +27,9 @@
 
 - Review theme statistics from Checkpoint 9 and adjust sentiment ranges or keywords if needed ⬜
 
-- Add more genre-specific keywords to improve theme matching ⬜
+- Add more genre-specific keywords to improve theme matching ✅
 
-- Consider adding theme priority (e.g., if multiple themes match a genre, which one to prefer?) ⬜
+- Consider adding theme priority (e.g., if multiple themes match a genre, which one to prefer?) ✅
 
 4. Vocabulary Improvements
 
