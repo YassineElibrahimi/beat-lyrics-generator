@@ -3,25 +3,25 @@
 
 1. Error Handling & Edge Cases
 
-- Handle missing theme config file gracefully (fallback to hardcoded defaults) ⬜
+- Handle missing theme config file gracefully (fallback to hardcoded defaults) ✅
 
-- Handle empty vocabulary for a theme (fallback to default theme) ⬜
+- Handle empty vocabulary for a theme (fallback to default theme) ✅
 
-- Handle missing Markov transitions (already has fallback to random words) ⬜
+- Handle missing Markov transitions (already has fallback to random words) ✅
 
-- Add try/except blocks for file I/O and database queries ⬜
+- Add try/except blocks for file I/O and database queries ✅
 
 - Add logging for debugging (optional) ⬜
 
 2. Markov Model Improvements
 
-- Add start-of-sequence and end-of-sequence markers for better line generation ⬜
+- Add start-of-sequence and end-of-sequence markers for better line generation ✅
 
-- Consider trigram model for longer-range coherence (optional, can be later) ⬜
+- Consider trigram model for longer-range coherence (optional, can be later) ✅
 
-- Filter low-frequency transitions (e.g., keep only transitions with count >= 2) ⬜
+- Filter low-frequency transitions (e.g., keep only transitions with count >= 2) ✅
 
-- Add temperature parameter for randomness control ⬜
+- Add temperature parameter for randomness control ✅
 
 3. Theme Assignment Refinements
 
@@ -33,21 +33,21 @@
 
 4. Vocabulary Improvements
 
-- Add stopword filtering to remove common words (use data/stopwords.txt) ⬜
+- Add stopword filtering to remove common words (use data/stopwords.txt) ✅
 
 - Consider stemming/lemmatization for better word grouping (optional) ⬜
 
-- Add minimum frequency threshold for vocabulary words (already have min_freq) ⬜
+- Add minimum frequency threshold for vocabulary words (already have min_freq) ✅
 
 5. Code Organization & Documentation
 
 - Add docstrings to all methods (some are missing) ⬜
 
-- Add comments for complex logic ⬜
+- Add comments for complex logic ✅
 
 - Create a config.py or centralize constants (db path, config paths) ⬜
 
-- Ensure consistent naming conventions ⬜
+- Ensure consistent naming conventions ✅
 
 6. Testing Enhancements
 
