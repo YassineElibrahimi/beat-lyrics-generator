@@ -25,7 +25,7 @@
 
 3. Theme Assignment Refinements
 
-- Review theme statistics from Checkpoint 9 and adjust sentiment ranges or keywords if needed ⬜
+- Review theme statistics from Checkpoint 9 and adjust sentiment ranges or keywords if needed ✅
 
 - Add more genre-specific keywords to improve theme matching ✅
 
@@ -34,8 +34,6 @@
 4. Vocabulary Improvements
 
 - Add stopword filtering to remove common words (use data/stopwords.txt) ✅
-
-- Consider stemming/lemmatization for better word grouping (optional) ⬜
 
 - Add minimum frequency threshold for vocabulary words (already have min_freq) ✅
 

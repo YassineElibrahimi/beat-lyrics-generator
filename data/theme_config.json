@@ -7,7 +7,7 @@
             "priority": 1
         },
         "melancholic": {
-            "sentiment_range": [-0.3, 0.1],
+            "sentiment_range": [-0.3, 0.0],
             "keywords": ["lost", "pain", "alone", "tears", "hurt", "cry", "broken", "heart", "sad", "regret", "lonely", "struggle"],
             "genres": ["any"],
             "priority": 5
@@ -25,7 +25,7 @@
             "priority": 7
         },
         "confident": {
-            "sentiment_range": [0.3, 1.0],
+            "sentiment_range": [0.15, 1.0],
             "keywords": ["king", "boss", "winner", "rich", "greatest", "legend", "champion", "top", "elite", "drip", "flex", "racks", "goat"],
             "genres": ["trap", "drill", "boom-bap"],
             "priority": 2
@@ -37,7 +37,7 @@
             "priority": 6
         },
         "playful": {
-            "sentiment_range": [0.1, 1.0],
+            "sentiment_range": [0.05, 1.0],
             "keywords": ["joke", "laugh", "fun", "party", "dance", "smile", "game", "cheer", "clap", "lit", "turn up"],
             "genres": ["trap", "boom-bap"],
             "priority": 8
