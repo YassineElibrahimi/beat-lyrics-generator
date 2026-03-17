@@ -27,7 +27,8 @@ def main():
         "test_midi",
         "test_lyrics",
         "test_markov_lyrics",
-        "test_theme_matching"
+        "test_theme_matching",
+        "test_edge_cases"
     ]
     for mod in test_modules:
         run_test(mod)
