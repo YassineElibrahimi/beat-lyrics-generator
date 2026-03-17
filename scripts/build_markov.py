@@ -7,6 +7,7 @@ from data.database import get_connection
 # Special tokens for line boundaries
 START_TOKEN = "__START__"
 END_TOKEN = "__END__"
+MIN_COUNT = 2  # minimum frequency to keep a transition
 
 def tokenize(line):
     """Convert line to list of lowercase words."""
@@ -55,19 +56,23 @@ def build_markov_transitions():
         # Last word -> END_TOKEN
         transitions[(theme, words[-1])][END_TOKEN] += 1
 
-    # Insert into database
+    # Insert into database only if count >= MIN_COUNT
+    inserted = 0
     for (theme, prev), next_counter in transitions.items():
         for nxt, cnt in next_counter.items():
-            cursor.execute('''
-                INSERT INTO markov_transitions (theme, prev_word, next_word, count)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(theme, prev_word, next_word)
-                DO UPDATE SET count = count + excluded.count
-            ''', (theme, prev, nxt, cnt))
+            if cnt >= MIN_COUNT:
+                cursor.execute('''
+                    INSERT INTO markov_transitions (theme, prev_word, next_word, count)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(theme, prev_word, next_word)
+                    DO UPDATE SET count = count + excluded.count
+                ''', (theme, prev, nxt, cnt))
+                inserted += 1
 
     conn.commit()
     conn.close()
-    print(f"Markov transitions built: {sum(len(c) for c in transitions.values())} unique (prev,next) pairs (including start/end tokens).")
+    total_before = sum(len(c) for c in transitions.values())
+    print(f"Markov transitions built: {inserted} unique (prev,next) pairs after filtering (min count={MIN_COUNT}), from {total_before} raw pairs.")
 
 if __name__ == '__main__':
     build_markov_transitions()
