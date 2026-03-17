@@ -9,5 +9,11 @@ def main():
         for line in lyrics:
             print(line)
 
+    gen = LyricsGenerator(seed=42)
+    print("Low temperature (0.5):")
+    print(gen.generate_line_markov('hard', temperature=0.5))
+    print("High temperature (2.0):")
+    print(gen.generate_line_markov('hard', temperature=2.0))
+
 if __name__ == '__main__':
     main()
