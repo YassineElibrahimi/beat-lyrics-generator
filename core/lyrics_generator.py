@@ -2,31 +2,59 @@
 
 """
 Explanation:
-This script defines a LyricsGenerator class that creates lyrics programmatically using a database of theme-based words.
-It connects to a SQLite database containing a 'vocabulary' table, retrieves words matching a theme, and assembles them into lines, verses, hooks, and full songs.
+Lyrics Generator Module:
+    This module provides the LyricsGenerator class, which creates lyrics programmatically
+    using a database of theme-based words and Markov chain models. It supports both
+    random vocabulary selection and advanced trigram-based generation with theme matching,
+    rhyming, and configurable temperature.
+"""
 
-Key functionalities include:
-- 'get_theme_words': fetches high-frequency words for a specific theme from the database.
-- 'generate_line': constructs a single line by randomly selecting words from the theme vocabulary.
-- 'generate_rhyming_couplet': generates two lines where the second line rhymes with the first, using the 'pronouncing' library.
-- 'generate_verse': builds a verse of multiple lines, optionally following a rhyme scheme (default AABB).
-- 'generate_hook': generates shorter lines suitable for a chorus or hook.
-- 'generate_full_lyrics': assembles a full song according to a user-defined structure (e.g., 'verse-hook-verse-hook') with configurable line counts.
-
-The class allows seeded randomness for reproducibility and leverages rhyming dictionaries to add lyrical coherence.
+"""
+Key features:
+    - Theme-based vocabulary retrieval
+    - Random line generation (fallback)
+    - Rhyming couplet generation (AABB scheme)
+    - Verse and hook construction with customizable structure
+    - Bigram and trigram Markov models with weighted sampling
+    - Start/end tokens for natural line boundaries
+    - Theme matching via sentiment + keyword scoring
+    - Priority-based theme selection for given genres
+    - Temperature control for randomness
 """
 
 """
 *Content:
-LyricsGenerator.__init__()
-LyricsGenerator._get_connection()
-LyricsGenerator.get_theme_words()
-LyricsGenerator.generate_line()
-LyricsGenerator.generate_rhyming_couplet()
-LyricsGenerator.generate_verse()
-LyricsGenerator.generate_hook()
-LyricsGenerator.generate_full_lyrics()
+    LyricsGenerator.__init__()
+    LyricsGenerator._get_connection()
+    LyricsGenerator._load_theme_config()
+    LyricsGenerator.get_themes_for_genre()
+    LyricsGenerator.get_default_theme()
+    LyricsGenerator.choose_theme_by_priority()
+
+    # ---------- Vocabulary methods ----------
+    LyricsGenerator.get_theme_words()
+    LyricsGenerator.generate_line()
+    LyricsGenerator.generate_rhyming_couplet()
+    LyricsGenerator.generate_verse()
+    LyricsGenerator.generate_hook()
+    LyricsGenerator.generate_full_lyrics()
+
+    # ---------- Markov methods (bigram) ----------
+    LyricsGenerator.load_markov_transitions()
+
+    # ---------- Trigram methods ----------
+    LyricsGenerator.load_trigram_transitions()
+    LyricsGenerator.weighted_choice()
+    LyricsGenerator.generate_line_markov()
+    LyricsGenerator.generate_rhyming_couplet_markov()
+    LyricsGenerator.generate_verse_markov()
+    LyricsGenerator.generate_full_lyrics_markov()
+    
 """
+
+
+
+
 
 
 
@@ -39,27 +67,50 @@ import os
 
 
 
+
+# Import centralized configuration
+from core.config import DB_PATH, START_TOKEN, END_TOKEN, THEME_CONFIG_PATH, DEFAULT_THEME
+
 class LyricsGenerator:
-    def __init__(self, db_path='data/beat_lyrics.db', seed=None):
+    """
+    A class for generating lyrics using theme-based vocabulary and Markov models.
+    """
+
+    def __init__(self, db_path=DB_PATH, seed=None):
+        """
+        Initialize the LyricsGenerator.
+
+        Args:
+            db_path (str): Path to the SQLite database containing vocabulary and Markov tables.
+            seed (int, optional): Random seed for reproducibility.
+        """
         self.db_path = db_path
         self._theme_config = None
-        self.START_TOKEN = "__START__"
-        self.END_TOKEN = "__END__"
+        self.START_TOKEN = START_TOKEN
+        self.END_TOKEN = END_TOKEN
         if seed:
             random.seed(seed)
 
     def _get_connection(self):
+        """
+        Create and return a database connection with row_factory set to sqlite3.Row.
+
+        Returns:
+            sqlite3.Connection: Database connection object.
+        """
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
 
     def _load_theme_config(self):
         """
-        Load and cache theme configuration from JSON file.
-        Provides fallback if file missing or invalid.
+        Load and cache theme configuration from JSON file. Provides fallback defaults if file is missing or invalid.
+
+        Returns:
+            dict: Theme configuration containing themes, sentiment ranges, keywords, genres, and priorities.
         """
         if self._theme_config is None:
-            config_path = os.path.join('data', 'theme_config.json')
+            config_path = THEME_CONFIG_PATH
             # Default minimal config in case file is missing
             default_config = {
                 "themes": {
@@ -76,7 +127,7 @@ class LyricsGenerator:
                         "keywords": ["vibe", "love"],
                         "genres": ["trap", "boom-bap"]}
                 },
-                "default_theme": "hard"
+                "default_theme": DEFAULT_THEME
             }
             try:
                 with open(config_path, 'r') as f:
@@ -90,6 +141,12 @@ class LyricsGenerator:
         """
         Return a list of theme names that match the given genre.
         A theme matches if its 'genres' list contains the genre or 'any'.
+
+        Args:
+            genre (str): Beat genre (e.g., 'trap', 'drill', 'boom-bap').
+
+        Returns:
+            list: List of matching theme names.
         """
         config = self._load_theme_config()
         matching = []
@@ -100,15 +157,25 @@ class LyricsGenerator:
         return matching
 
     def get_default_theme(self):
-        """Return the default theme from config."""
+        """
+        Return the default theme from config.
+
+        Returns:
+            str: Default theme name.
+        """
         config = self._load_theme_config()
-        return config.get('default_theme', 'hard')
+        return config.get('default_theme', DEFAULT_THEME)
 
     def choose_theme_by_priority(self, themes):
         """
-        Given a list of theme names, return one chosen randomly
-        with probability weighted by priority (lower number = higher weight).
-        If a theme has no priority, default to 5.
+        Given a list of theme names, return one chosen randomly with probability weighted by priority.
+        Lower priority number = higher weight.
+
+        Args:
+            themes (list): List of theme names.
+
+        Returns:
+            str: Chosen theme name.
         """
         config = self._load_theme_config()
         weights = []
@@ -129,7 +196,17 @@ class LyricsGenerator:
 
     # ---------- Vocabulary methods ----------
     def get_theme_words(self, theme, min_freq=2, limit=200):
-        """Retrieve words for a given theme with frequency >= min_freq."""
+        """
+        Retrieve words for a given theme with frequency >= min_freq.
+
+        Args:
+            theme (str): Theme name (e.g., 'hard', 'melancholic').
+            min_freq (int): Minimum word frequency to include.
+            limit (int): Maximum number of words to return.
+
+        Returns:
+            list: List of words (strings) for the theme.
+        """
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -145,7 +222,16 @@ class LyricsGenerator:
             return []
 
     def generate_line(self, theme_words, length_range=(4, 8)):
-        """Generate a single line by randomly selecting words from theme vocabulary."""
+        """
+        Generate a single line by randomly selecting words from theme vocabulary.
+
+        Args:
+            theme_words (list): List of words available for the theme.
+            length_range (tuple): (min_words, max_words) for line length.
+
+        Returns:
+            str: Generated line (capitalized).
+        """
         if not theme_words:
             return "[no words available]"
         num_words = random.randint(*length_range)
@@ -155,22 +241,41 @@ class LyricsGenerator:
         return ' '.join(line_words).capitalize()
 
     def generate_rhyming_couplet(self, theme_words, line1=None):
-        """Generate two lines that rhyme (AABB scheme)."""
+        """
+        Generate two lines that rhyme (AABB scheme) using vocabulary words.
+
+        Args:
+            theme_words (list): List of words for the theme.
+            line1 (str, optional): First line to rhyme with; if None, generate a random line.
+
+        Returns:
+            tuple: (line1, line2) where line2 rhymes with line1.
+        """
         if line1 is None:
             line1 = self.generate_line(theme_words)
         last_word = line1.split()[-1].lower()
-        rhymes    = pronouncing.rhymes(last_word)
+        rhymes = pronouncing.rhymes(last_word)
         if not rhymes:
             line2 = self.generate_line(theme_words)
         else:
-            rhyme_word  = random.choice(rhymes)
-            num_words   = random.randint(4, 8)
+            rhyme_word = random.choice(rhymes)
+            num_words = random.randint(4, 8)
             other_words = random.choices(theme_words, k=num_words-1)
-            line2       = ' '.join(other_words + [rhyme_word]).capitalize()
+            line2 = ' '.join(other_words + [rhyme_word]).capitalize()
         return line1, line2
 
     def generate_verse(self, theme, num_bars=16, rhyme_scheme='AABB'):
-        """Generate a verse of num_bars lines."""
+        """
+        Generate a verse of num_bars lines using vocabulary words.
+
+        Args:
+            theme (str): Theme name.
+            num_bars (int): Number of lines in the verse.
+            rhyme_scheme (str): Currently only 'AABB' is supported.
+
+        Returns:
+            list: List of generated lines.
+        """
         theme_words = self.get_theme_words(theme)
         lines = []
         i = 0
@@ -185,13 +290,33 @@ class LyricsGenerator:
         return lines[:num_bars]
 
     def generate_hook(self, theme, num_lines=4):
-        """Generate a hook (chorus) - can be shorter lines."""
+        """
+        Generate a hook (chorus) with shorter lines.
+
+        Args:
+            theme (str): Theme name.
+            num_lines (int): Number of lines for the hook.
+
+        Returns:
+            list: List of generated lines.
+        """
         theme_words = self.get_theme_words(theme)
         return [self.generate_line(theme_words, length_range=(3,6)) for _ in range(num_lines)]
 
     def generate_full_lyrics(self, theme, structure='verse-hook-verse-hook', bars_verse=16, bars_hook=8):
-        """Generate lyrics according to structure."""
-        sections  = structure.split('-')
+        """
+        Generate full lyrics according to a structure string.
+
+        Args:
+            theme (str): Theme name.
+            structure (str): Hyphen-separated sections, e.g., 'verse-hook-verse-hook'.
+            bars_verse (int): Number of lines per verse.
+            bars_hook (int): Number of lines per hook.
+
+        Returns:
+            list: List of all generated lines.
+        """
+        sections = structure.split('-')
         all_lines = []
         for section in sections:
             if section == 'verse':
@@ -202,7 +327,16 @@ class LyricsGenerator:
 
     # ---------- Markov methods (bigram) ----------
     def load_markov_transitions(self, theme, prev_word):
-        """Return a list of (next_word, count) for given theme and prev_word."""
+        """
+        Load bigram transitions from the database for a given theme and previous word.
+
+        Args:
+            theme (str): Theme name.
+            prev_word (str): Previous word.
+
+        Returns:
+            list: List of (next_word, count) tuples.
+        """
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -217,6 +351,17 @@ class LyricsGenerator:
 
     # ---------- Trigram methods ----------
     def load_trigram_transitions(self, theme, prev1, prev2):
+        """
+        Load trigram transitions from the database for a given theme and previous two words.
+
+        Args:
+            theme (str): Theme name.
+            prev1 (str): First previous word.
+            prev2 (str): Second previous word.
+
+        Returns:
+            list: List of (next_word, count) tuples.
+        """
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -231,11 +376,15 @@ class LyricsGenerator:
 
     def weighted_choice(self, items, temperature=1.0):
         """
-        items: list of (item, weight)
-        temperature: >0.
-                    Lower = more conservative (picks high-weight items more often),
-                    higher = more random. 1.0 is standard.
-        Returns chosen item.
+        Perform a weighted random choice with temperature scaling.
+
+        Args:
+            items (list): List of (item, weight) tuples.
+            temperature (float): >0. Lower values make choices more deterministic (favor high weights),
+                                 higher values increase randomness. 1.0 is standard.
+
+        Returns:
+            The chosen item.
         """
         if temperature <= 0:
             raise ValueError("Temperature must be > 0")
@@ -252,8 +401,17 @@ class LyricsGenerator:
         return items[-1][0]  # fallback
 
     def generate_line_markov(self, theme, min_words=4, max_words=8, temperature=1.0):
-        """Generate a line using bigram Markov model with weighted sampling.
-        temperature: randomness control (lower = more predictable, higher = more creative).
+        """
+        Generate a line using trigram model with fallback to bigram and vocabulary.
+
+        Args:
+            theme (str): Theme name.
+            min_words (int): Minimum number of words in the line.
+            max_words (int): Maximum number of words in the line.
+            temperature (float): Temperature for weighted choice.
+
+        Returns:
+            str: Generated line (capitalized).
         """
         # Start with two START tokens
         prev1, prev2 = self.START_TOKEN, self.START_TOKEN
@@ -296,10 +454,16 @@ class LyricsGenerator:
 
     def generate_rhyming_couplet_markov(self, theme, line1=None, temperature=1.0, max_attempts=5):
         """
-        Generate two lines that rhyme (AABB scheme) using Markov chains.
-        Tries up to max_attempts to generate a second line that naturally ends
-        with a word that rhymes with the first line's last word.
-        Falls back to forced replacement if unsuccessful.
+        Generate two rhyming lines using Markov chains. Tries to make line2 naturally end with a rhyming word.
+
+        Args:
+            theme (str): Theme name.
+            line1 (str, optional): First line; if None, generate one.
+            temperature (float): Temperature for Markov generation.
+            max_attempts (int): Maximum attempts to find a natural rhyme before forced replacement.
+
+        Returns:
+            tuple: (line1, line2)
         """
         if line1 is None:
             line1 = self.generate_line_markov(theme, temperature=temperature)
@@ -327,9 +491,18 @@ class LyricsGenerator:
 
     def generate_verse_markov(self, theme=None, genre=None, num_bars=16, rhyme_scheme='AABB', temperature=1.0):
         """
-        Generate a verse using Markov chains.
-        Either theme or genre must be provided.
-        If genre is given, pick a random matching theme.
+        Generate a verse using Markov chains. Either theme or genre must be provided.
+        If genre is given, pick a random matching theme using priority weighting.
+
+        Args:
+            theme (str, optional): Theme name (if genre not provided).
+            genre (str, optional): Beat genre to select a theme from.
+            num_bars (int): Number of lines.
+            rhyme_scheme (str): Currently only 'AABB' is supported.
+            temperature (float): Temperature for generation.
+
+        Returns:
+            list: List of generated lines.
         """
         if theme is None and genre is None:
             raise ValueError("Either theme or genre must be provided")
@@ -358,8 +531,19 @@ class LyricsGenerator:
     def generate_full_lyrics_markov(self, theme=None, genre=None, structure='verse-hook-verse-hook',
                                     bars_verse=16, bars_hook=8, temperature=1.0):
         """
-        Generate full lyrics using Markov.
-        Either theme or genre must be provided.
+        Generate full lyrics using Markov chains. Either theme or genre must be provided.
+        If genre is given, pick a random matching theme using priority weighting.
+
+        Args:
+            theme (str, optional): Theme name (if genre not provided).
+            genre (str, optional): Beat genre to select a theme from.
+            structure (str): Hyphen-separated sections, e.g., 'verse-hook-verse-hook'.
+            bars_verse (int): Number of lines per verse.
+            bars_hook (int): Number of lines per hook.
+            temperature (float): Temperature for generation.
+
+        Returns:
+            list: List of all generated lines.
         """
         if theme is None and genre is None:
             raise ValueError("Either theme or genre must be provided")

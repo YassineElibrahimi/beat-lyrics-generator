@@ -39,11 +39,11 @@
 
 5. Code Organization & Documentation
 
-- Add docstrings to all methods (some are missing) ⬜
+- Add docstrings to all methods (some are missing) ✅
 
 - Add comments for complex logic ✅
 
-- Create a config.py or centralize constants (db path, config paths) ⬜
+- Create a config.py or centralize constants (db path, config paths) ✅
 
 - Ensure consistent naming conventions ✅
 
