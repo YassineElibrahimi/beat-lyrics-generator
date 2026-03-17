@@ -34,9 +34,36 @@ build_vocabulary()
 
 import re
 from data.database import get_connection
+import os
 
 
 
+
+def load_stopwords():
+    """Load stopwords from file. Return a set of lowercase stopwords."""
+    stopwords_path = os.path.join('data', 'stopwords.txt')
+    stopwords = set()
+    try:
+        with open(stopwords_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                word = line.strip().lower()
+                if word:
+                    stopwords.add(word)
+    except FileNotFoundError:
+        print("Warning: stopwords.txt not found. Using minimal default stopwords.")
+        # Minimal default stopwords
+        default = ["the", "and", "to", "of", "a", "in", "that", "it", "is", "was", "i", "for", 
+                "on", "you", "he", "be", "with", "as", "by", "at", "have", "are", "this", 
+                "not", "but", "from", "or", "an", "will", "my", "one", "all", "would", 
+                "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", 
+                "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", 
+                "him", "know", "take", "people", "into", "year", "your", "good", "some", 
+                "could", "them", "see", "other", "than", "then", "now", "look", "only", 
+                "come", "its", "over", "think", "also", "back", "after", "use", "two", 
+                "how", "our", "work", "first", "well", "way", "even", "new", "want", 
+                "because", "any", "these", "give", "day", "most", "us"]
+        stopwords = set(default)
+    return stopwords
 
 def build_vocabulary():
     conn    = get_connection()
@@ -45,6 +72,8 @@ def build_vocabulary():
     # Fetch all lines  with their themes
     cursor.execute('SELECT theme, text FROM lines WHERE theme IS NOT NULL')
     rows = cursor.fetchall()
+    # Load stopwords
+    stopwords = load_stopwords()
 
     word_counts = {}        # (theme, word) -> count
 
@@ -53,7 +82,7 @@ def build_vocabulary():
         text     = row['text'].lower()
         words   = re.findall(r'\b[a-z]+\b', text)
         for word in words:
-            if len(word) < 3:
+            if len(word) < 3 or word in stopwords:
                 continue
             key = (theme, word)
             word_counts[key] = word_counts.get(key, 0) + 1
@@ -68,7 +97,7 @@ def build_vocabulary():
 
     conn.commit()
     conn.close()
-    print("Vocabulary built successfully.")
+    print("Vocabulary built successfully with stopwords removed.")
 
 if __name__ == '__main__':
     build_vocabulary()
