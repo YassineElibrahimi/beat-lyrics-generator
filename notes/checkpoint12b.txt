@@ -39,7 +39,7 @@
 
 5. Code Organization & Documentation
 
-- Add docstrings to all methods (some are missing) ✅
+- Add docstrings to all methods (some are missing) ✅/⬜
 
 - Add comments for complex logic ✅
 
@@ -55,4 +55,4 @@
 
 - Test with empty datasets ✅
 
-- Add performance benchmarks (optional) ✅
+- Add performance benchmarks (optional) ⬜
