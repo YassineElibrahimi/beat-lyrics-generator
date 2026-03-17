@@ -43,6 +43,8 @@ class LyricsGenerator:
     def __init__(self, db_path='data/beat_lyrics.db', seed=None):
         self.db_path = db_path
         self._theme_config = None
+        self.START_TOKEN = "__START__"
+        self.END_TOKEN = "__END__"
         if seed:
             random.seed(seed)
 
@@ -214,26 +216,18 @@ class LyricsGenerator:
         return items[-1][0]  # fallback
 
     def generate_line_markov(self, theme, min_words=4, max_words=8):
-        """Generate a line using bigram Markov model with weighted sampling."""
-        # Get all possible start words (prev_word = first word of bigram)
-        try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute('''
-                    SELECT DISTINCT prev_word FROM markov_transitions WHERE theme = ?
-                ''', (theme,))
-                start_words = [row['prev_word'] for row in cursor.fetchall()]
-        except sqlite3.Error as e:
-            print(f"Database error in generate_line_markov (start words): {e}")
-            start_words = []
-
-        if not start_words:
+        """
+        Generate a line using bigram Markov model with weighted sampling,
+        using start/end tokens.
+        """
+        # First, get possible first words from START_TOKEN
+        start_transitions = self.load_markov_transitions(theme, self.START_TOKEN)
+        if not start_transitions:
             # Fallback to random vocabulary
             return self.generate_line(self.get_theme_words(theme))
 
-        # Pick a random start word
-        start_word = random.choice(start_words)
-        words = [start_word]
+        first_word = self.weighted_choice(start_transitions)
+        words = [first_word]
 
         for _ in range(max_words - 1):
             prev = words[-1]
@@ -241,11 +235,13 @@ class LyricsGenerator:
             if not transitions:
                 break
             next_word = self.weighted_choice(transitions)
+            if next_word == self.END_TOKEN:
+                break
             words.append(next_word)
             if len(words) >= max_words:
                 break
 
-        # Pad if too short
+        # Pad if too short (though we have min_words, but we might have ended early)
         while len(words) < min_words:
             theme_words = self.get_theme_words(theme)
             if theme_words:

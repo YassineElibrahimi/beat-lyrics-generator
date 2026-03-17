@@ -4,8 +4,12 @@ import re
 from collections import defaultdict, Counter
 from data.database import get_connection
 
+# Special tokens for line boundaries
+START_TOKEN = "__START__"
+END_TOKEN = "__END__"
+
 def tokenize(line):
-    """convert line to list of lowercase words (simple tokenizer)."""
+    """Convert line to list of lowercase words."""
     return re.findall(r'\b[a-z]+\b', line.lower())
 
 def build_markov_transitions():
@@ -36,12 +40,20 @@ def build_markov_transitions():
     for row in rows:
         theme = row['theme']
         words = tokenize(row['text'])
-        if len(words) < 2:
+        if len(words) < 1:
             continue
+        
+        # START_TOKEN -> first word
+        transitions[(theme, START_TOKEN)][words[0]] += 1
+        
+        # Transitions between words
         for i in range(len(words)-1):
             prev = words[i]
             nxt  = words[i+1]
             transitions[(theme, prev)][nxt] += 1
+        
+        # Last word -> END_TOKEN
+        transitions[(theme, words[-1])][END_TOKEN] += 1
 
     # Insert into database
     for (theme, prev), next_counter in transitions.items():
@@ -51,12 +63,11 @@ def build_markov_transitions():
                 VALUES (?, ?, ?, ?)
                 ON CONFLICT(theme, prev_word, next_word)
                 DO UPDATE SET count = count + excluded.count
-            ''', (theme, prev, nxt, cnt)
-            )
+            ''', (theme, prev, nxt, cnt))
 
     conn.commit()
     conn.close()
-    print(f"Markov transitions built: {sum(len(c) for c in transitions.values())} unique (prev,next) pairs.")
+    print(f"Markov transitions built: {sum(len(c) for c in transitions.values())} unique (prev,next) pairs (including start/end tokens).")
 
 if __name__ == '__main__':
     build_markov_transitions()
