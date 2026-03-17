@@ -81,11 +81,8 @@ class LyricsGenerator:
             try:
                 with open(config_path, 'r') as f:
                     self._theme_config = json.load(f)
-            except FileNotFoundError:
-                print(f"Warning: Theme config not found at {config_path}. Using hardcoded defaults.")
-                self._theme_config = default_config
-            except json.JSONDecodeError:
-                print(f"Error: Theme config at {config_path} is invalid JSON. Using hardcoded defaults.")
+            except (FileNotFoundError, json.JSONDecodeError):
+                print(f"Warning: Theme config issue. Using defaults.")
                 self._theme_config = default_config
         return self._theme_config
 
@@ -95,12 +92,12 @@ class LyricsGenerator:
         A theme matches if its 'genres' list contains the genre or 'any'.
         """
         config = self._load_theme_config()
-        matching_themes = []
+        matching = []
         for theme_name, theme_data in config['themes'].items():
             genres = theme_data.get('genres', [])
             if genre in genres or 'any' in genres:
-                matching_themes.append(theme_name)
-        return matching_themes
+                matching.append(theme_name)
+        return matching
 
     def get_default_theme(self):
         """Return the default theme from config."""
@@ -119,8 +116,7 @@ class LyricsGenerator:
                     ORDER BY frequency DESC
                     LIMIT ?
                 ''', (theme, min_freq, limit))
-                rows = cursor.fetchall()
-                return [row['word'] for row in rows]
+                return [row['word'] for row in cursor.fetchall()]
         except sqlite3.Error as e:
             print(f"Database error in get_theme_words: {e}")
             return []
@@ -133,8 +129,7 @@ class LyricsGenerator:
         # Ensure we don't try to choose more words than available
         k = min(num_words, len(theme_words))
         line_words = random.choices(theme_words, k=k)
-        line = ' '.join(line_words)
-        return line.capitalize()
+        return ' '.join(line_words).capitalize()
 
     def generate_rhyming_couplet(self, theme_words, line1=None):
         """Generate two lines that rhyme (AABB scheme)."""
@@ -159,8 +154,7 @@ class LyricsGenerator:
         while i < num_bars:
             if rhyme_scheme == 'AABB':
                 line1, line2 = self.generate_rhyming_couplet(theme_words)
-                lines.append(line1)
-                lines.append(line2)
+                lines.extend([line1, line2])
                 i += 2
             else:
                 lines.append(self.generate_line(theme_words))
@@ -170,11 +164,7 @@ class LyricsGenerator:
     def generate_hook(self, theme, num_lines=4):
         """Generate a hook (chorus) - can be shorter lines."""
         theme_words = self.get_theme_words(theme)
-        hook = []
-        for _ in range(num_lines):
-            line = self.generate_line(theme_words, length_range=(3, 6))
-            hook.append(line)
-        return hook
+        return [self.generate_line(theme_words, length_range=(3,6)) for _ in range(num_lines)]
 
     def generate_full_lyrics(self, theme, structure='verse-hook-verse-hook', bars_verse=16, bars_hook=8):
         """Generate lyrics according to structure."""
@@ -182,14 +172,12 @@ class LyricsGenerator:
         all_lines = []
         for section in sections:
             if section == 'verse':
-                lines = self.generate_verse(theme, num_bars=bars_verse)
-                all_lines.extend(lines)
+                all_lines.extend(self.generate_verse(theme, num_bars=bars_verse))
             elif section == 'hook':
-                lines = self.generate_hook(theme, num_lines=bars_hook)
-                all_lines.extend(lines)
+                all_lines.extend(self.generate_hook(theme, num_lines=bars_hook))
         return all_lines
 
-    # ---------- Markov methods ----------
+    # ---------- Markov methods (bigram) ----------
     def load_markov_transitions(self, theme, prev_word):
         """Return a list of (next_word, count) for given theme and prev_word."""
         try:
@@ -204,6 +192,20 @@ class LyricsGenerator:
             print(f"Database error in load_markov_transitions: {e}")
             return []
 
+    # ---------- Trigram methods ----------
+    def load_trigram_transitions(self, theme, prev1, prev2):
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT next_word, count FROM markov_trigrams
+                    WHERE theme = ? AND prev1 = ? AND prev2 = ?
+                ''', (theme, prev1, prev2))
+                return cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"Database error in load_trigram_transitions: {e}")
+            return []
+
     def weighted_choice(self, items, temperature=1.0):
         """
         items: list of (item, weight)
@@ -214,7 +216,7 @@ class LyricsGenerator:
         """
         if temperature <= 0:
             raise ValueError("Temperature must be > 0")
-        
+
         # Adjust weights by temperature
         weights = [weight ** (1.0 / temperature) for _, weight in items]
         total = sum(weights)
@@ -230,26 +232,34 @@ class LyricsGenerator:
         """Generate a line using bigram Markov model with weighted sampling.
         temperature: randomness control (lower = more predictable, higher = more creative).
         """
-        # First, get possible first words from START_TOKEN
-        start_transitions = self.load_markov_transitions(theme, self.START_TOKEN)
-        if not start_transitions:
-            # Fallback to random vocabulary
-            return self.generate_line(self.get_theme_words(theme))
+        # Start with two START tokens
+        prev1, prev2 = self.START_TOKEN, self.START_TOKEN
 
-        first_word = self.weighted_choice(start_transitions, temperature)
+        # Get first word from (START, START)
+        transitions = self.load_trigram_transitions(theme, prev1, prev2)
+        if not transitions:
+            # fallback to bigram START_TOKEN
+            transitions = self.load_markov_transitions(theme, self.START_TOKEN)
+            if not transitions:
+                return self.generate_line(self.get_theme_words(theme))
+        first_word = self.weighted_choice(transitions, temperature)
         words = [first_word]
 
+        prev1, prev2 = self.START_TOKEN, first_word
         for _ in range(max_words - 1):
-            prev = words[-1]
-            transitions = self.load_markov_transitions(theme, prev)
+            transitions = self.load_trigram_transitions(theme, prev1, prev2)
             if not transitions:
-                break
+                # fallback to bigram using only prev2
+                transitions = self.load_markov_transitions(theme, prev2)
+                if not transitions:
+                    break
             next_word = self.weighted_choice(transitions, temperature)
             if next_word == self.END_TOKEN:
                 break
             words.append(next_word)
             if len(words) >= max_words:
                 break
+            prev1, prev2 = prev2, next_word
 
         # Pad if too short
         while len(words) < min_words:
@@ -270,19 +280,18 @@ class LyricsGenerator:
         """
         if line1 is None:
             line1 = self.generate_line_markov(theme, temperature=temperature)
-        
+
         target_word = line1.split()[-1].lower()
         rhymes = pronouncing.rhymes(target_word)
-        valid_endings = set([target_word] + rhymes)  # includes the original word
-        
-        # Try to generate a line that naturally ends with a rhyming word
-        for attempt in range(max_attempts):
-            line2_candidate = self.generate_line_markov(theme, temperature=temperature)
-            last = line2_candidate.split()[-1].lower()
+        valid_endings = set([target_word] + rhymes)
+
+        for _ in range(max_attempts):
+            line2 = self.generate_line_markov(theme, temperature=temperature)
+            last = line2.split()[-1].lower()
             if last in valid_endings:
-                return line1, line2_candidate
-        
-        # Fallback: force a rhyme by replacing the last word
+                return line1, line2
+
+        # fallback forced rhyme
         rhyme_word = random.choice(rhymes) if rhymes else target_word
         line2 = self.generate_line_markov(theme, temperature=temperature)
         words = line2.split()
@@ -304,28 +313,27 @@ class LyricsGenerator:
 
         # Determine which theme to use
         if genre is not None:
-            matching_themes = self.get_themes_for_genre(genre)
-            if not matching_themes:
-                # Fallback to default theme
+            matching = self.get_themes_for_genre(genre)
+            if not matching:
                 theme = self.get_default_theme()
                 print(f"Warning: No themes match genre '{genre}'. Using default theme: {theme}")
             else:
-                theme = random.choice(matching_themes)
+                theme = random.choice(matching)
 
         lines = []
         i = 0
         while i < num_bars:
             if rhyme_scheme == 'AABB':
-                line1, line2 = self.generate_rhyming_couplet_markov(theme, temperature=temperature)
-                lines.append(line1)
-                lines.append(line2)
+                l1, l2 = self.generate_rhyming_couplet_markov(theme, temperature=temperature)
+                lines.extend([l1, l2])
                 i += 2
             else:
                 lines.append(self.generate_line_markov(theme, temperature=temperature))
                 i += 1
         return lines[:num_bars]
 
-    def generate_full_lyrics_markov(self, theme=None, genre=None, structure='verse-hook-verse-hook', bars_verse=16, bars_hook=8, temperature=1.0):
+    def generate_full_lyrics_markov(self, theme=None, genre=None, structure='verse-hook-verse-hook',
+                                    bars_verse=16, bars_hook=8, temperature=1.0):
         """
         Generate full lyrics using Markov.
         Either theme or genre must be provided.
@@ -335,19 +343,18 @@ class LyricsGenerator:
 
         # Determine which theme to use
         if genre is not None:
-            matching_themes = self.get_themes_for_genre(genre)
-            if not matching_themes:
+            matching = self.get_themes_for_genre(genre)
+            if not matching:
                 theme = self.get_default_theme()
                 print(f"Warning: No themes match genre '{genre}'. Using default theme: {theme}")
             else:
-                theme = random.choice(matching_themes)
+                theme = random.choice(matching)
 
         sections = structure.split('-')
         all_lines = []
         for section in sections:
             if section == 'verse':
-                lines = self.generate_verse_markov(theme=theme, num_bars=bars_verse, temperature=temperature)
-                all_lines.extend(lines)
+                all_lines.extend(self.generate_verse_markov(theme=theme, num_bars=bars_verse, temperature=temperature))
             elif section == 'hook':
                 for _ in range(bars_hook):
                     all_lines.append(self.generate_line_markov(theme, min_words=3, max_words=6, temperature=temperature))
