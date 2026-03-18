@@ -20,3 +20,15 @@ Thumbs.db
 
 # Database
 *.db
+
+# SoundFonts (large resource files)
+/resources/*.sf2
+resources/*.sf2
+
+# Generated audio and MIDI files
+*.wav
+*.mp3
+*.mid
+*.midi
+*.ogg
+*.flac
