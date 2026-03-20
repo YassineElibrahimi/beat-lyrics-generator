@@ -1,0 +1,370 @@
+# gui/full_track_widget.py
+"""
+Full Track Widget - generates beat, lyrics, and voice, with individual track controls.
+"""
+
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
+                                QLabel, QComboBox, QSlider, QPushButton,
+                                QGridLayout, QScrollArea, QFrame, QTextEdit,
+                                QSplitter)
+from PySide6.QtCore import Qt, Signal
+from core.chord_generator import ChordGenerator
+from core.melody_generator import MelodyGenerator
+from core.drum_generator import DrumGenerator
+from core.midi_exporter import MIDIExporter
+from core.lyrics_generator import LyricsGenerator
+from core.alignment import VocalAligner
+from core.tts import get_tts_provider
+from core.stretcher import stretch_audio
+from core.mixer import mix_tracks
+from pydub import AudioSegment
+import os
+import random
+from datetime import datetime
+
+class FullTrackWidget(QWidget):
+    """Widget for generating full tracks (beat + lyrics + voice)."""
+
+    track_generated = Signal(str)  # emits path to final WAV
+
+    def __init__(self):
+        super().__init__()
+        self.chord_gen = ChordGenerator()
+        self.melody_gen = MelodyGenerator()
+        self.drum_gen = DrumGenerator()
+        self.lyrics_gen = LyricsGenerator()
+
+        # Current data
+        self.current_genre = "trap"
+        self.current_theme = "hard"
+        self.current_key = "C"
+        self.current_tempo = 140
+        self.current_instrument = "piano"
+        self.current_lyrics = []
+        self.current_beat_data = {}
+        self.current_vocal_path = None
+        self.current_beat_wav = None
+
+        self._setup_ui()
+
+    def _setup_ui(self):
+        """Create all UI elements."""
+        main_layout = QVBoxLayout(self)
+
+        # --- Parameters Group ---
+        params_group = QGroupBox("Track Parameters")
+        params_layout = QGridLayout(params_group)
+
+        # Genre
+        params_layout.addWidget(QLabel("Genre:"), 0, 0)
+        self.genre_combo = QComboBox()
+        self.genre_combo.addItems(["trap", "drill", "old_school"])
+        self.genre_combo.currentTextChanged.connect(self._on_genre_changed)
+        params_layout.addWidget(self.genre_combo, 0, 1)
+
+        # Theme
+        params_layout.addWidget(QLabel("Theme:"), 0, 2)
+        self.theme_combo = QComboBox()
+        self.theme_combo.addItems(["hard", "melancholic", "aggressive", "smooth"])
+        self.theme_combo.currentTextChanged.connect(self._on_theme_changed)
+        params_layout.addWidget(self.theme_combo, 0, 3)
+
+        # Lead Instrument
+        params_layout.addWidget(QLabel("Lead Instrument:"), 1, 0)
+        self.instrument_combo = QComboBox()
+        self.instrument_combo.addItems(["piano", "brass", "flute", "violin", "synth_lead", "bass"])
+        self.instrument_combo.currentTextChanged.connect(self._on_instrument_changed)
+        params_layout.addWidget(self.instrument_combo, 1, 1)
+
+        # Key
+        params_layout.addWidget(QLabel("Key:"), 1, 2)
+        self.key_combo = QComboBox()
+        self.key_combo.addItems(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"])
+        self.key_combo.setCurrentText("C")
+        self.key_combo.currentTextChanged.connect(self._on_key_changed)
+        params_layout.addWidget(self.key_combo, 1, 3)
+
+        # Tempo
+        params_layout.addWidget(QLabel("Tempo (BPM):"), 2, 0)
+        self.tempo_slider = QSlider(Qt.Horizontal)
+        self.tempo_slider.setRange(60, 200)
+        self.tempo_slider.setValue(140)
+        self.tempo_slider.valueChanged.connect(self._on_tempo_changed)
+        params_layout.addWidget(self.tempo_slider, 2, 1, 1, 2)
+        self.tempo_label = QLabel("140")
+        params_layout.addWidget(self.tempo_label, 2, 3)
+
+        # Generate button
+        self.generate_btn = QPushButton("Generate Full Track")
+        self.generate_btn.clicked.connect(self.generate_full_track)
+        params_layout.addWidget(self.generate_btn, 3, 0, 1, 4)
+
+        main_layout.addWidget(params_group)
+
+        # --- Splitter for Beat, Lyrics, and Voice controls ---
+        splitter = QSplitter(Qt.Horizontal)
+
+        # Beat Panel
+        self.beat_panel = self._create_beat_panel()
+        splitter.addWidget(self.beat_panel)
+
+        # Lyrics Panel
+        self.lyrics_panel = self._create_lyrics_panel()
+        splitter.addWidget(self.lyrics_panel)
+
+        # Voice Panel
+        self.voice_panel = self._create_voice_panel()
+        splitter.addWidget(self.voice_panel)
+
+        main_layout.addWidget(splitter)
+
+    def _create_beat_panel(self):
+        """Create panel for beat controls."""
+        panel = QGroupBox("Beat")
+        layout = QVBoxLayout(panel)
+
+        self.beat_status = QLabel("Not generated")
+        layout.addWidget(self.beat_status)
+
+        # Regenerate buttons
+        btn_layout = QHBoxLayout()
+        self.regenerate_beat_btn = QPushButton("Regenerate Beat")
+        self.regenerate_beat_btn.clicked.connect(self.regenerate_beat)
+        self.regenerate_beat_btn.setEnabled(False)
+        btn_layout.addWidget(self.regenerate_beat_btn)
+
+        layout.addLayout(btn_layout)
+
+        # Placeholder for individual track buttons (will be populated after generation)
+        self.beat_tracks_layout = QVBoxLayout()
+        layout.addLayout(self.beat_tracks_layout)
+
+        return panel
+
+    def _create_lyrics_panel(self):
+        """Create panel for lyrics display and controls."""
+        panel = QGroupBox("Lyrics")
+        layout = QVBoxLayout(panel)
+
+        self.lyrics_text = QTextEdit()
+        self.lyrics_text.setReadOnly(True)
+        layout.addWidget(self.lyrics_text)
+
+        btn_layout = QHBoxLayout()
+        self.regenerate_lyrics_btn = QPushButton("Regenerate Lyrics")
+        self.regenerate_lyrics_btn.clicked.connect(self.regenerate_lyrics)
+        self.regenerate_lyrics_btn.setEnabled(False)
+        btn_layout.addWidget(self.regenerate_lyrics_btn)
+
+        layout.addLayout(btn_layout)
+
+        return panel
+
+    def _create_voice_panel(self):
+        """Create panel for voice synthesis controls."""
+        panel = QGroupBox("Voice")
+        layout = QVBoxLayout(panel)
+
+        # TTS Provider selection (placeholder vs ElevenLabs)
+        provider_layout = QHBoxLayout()
+        provider_layout.addWidget(QLabel("TTS Engine:"))
+        self.tts_provider_combo = QComboBox()
+        self.tts_provider_combo.addItems(["placeholder", "elevenlabs"])
+        provider_layout.addWidget(self.tts_provider_combo)
+        layout.addLayout(provider_layout)
+
+        self.voice_status = QLabel("Not generated")
+        layout.addWidget(self.voice_status)
+
+        self.regenerate_voice_btn = QPushButton("Regenerate Voice")
+        self.regenerate_voice_btn.clicked.connect(self.regenerate_voice)
+        self.regenerate_voice_btn.setEnabled(False)
+        layout.addWidget(self.regenerate_voice_btn)
+
+        return panel
+
+    def _on_genre_changed(self, genre):
+        self.current_genre = genre
+
+    def _on_theme_changed(self, theme):
+        self.current_theme = theme
+
+    def _on_instrument_changed(self, instrument):
+        self.current_instrument = instrument
+
+    def _on_key_changed(self, key):
+        self.current_key = key
+
+    def _on_tempo_changed(self, value):
+        self.current_tempo = value
+        self.tempo_label.setText(str(value))
+
+    def generate_full_track(self):
+        """Generate a complete track: beat, lyrics, voice, mix."""
+        self.generate_beat()
+        self.generate_lyrics()
+        self.generate_voice()
+        self.mix_track()
+
+    def generate_beat(self):
+        """Generate the beat (same as in beat editor)."""
+        self.beat_status.setText("Generating beat...")
+
+        # Generate components
+        self.current_chords = self.chord_gen.generate(self.current_genre, self.current_theme, self.current_key)
+        self.current_melody = self.melody_gen.generate_melody(self.current_chords, key_name=self.current_key, durations_per_chord=4)
+        self.current_drum_events = self.drum_gen.get_all_events(self.current_genre)
+
+        # Store for later use
+        self.current_beat_data = {
+            'chords': self.current_chords,
+            'melody': self.current_melody,
+            'drums': self.current_drum_events,
+            'tempo': self.current_tempo
+        }
+
+        # Export MIDI
+        exporter = MIDIExporter(tempo=self.current_tempo)
+        exporter.add_chords(self.current_chords, program=1)
+        exporter.add_melody(self.current_melody, program=73)
+        exporter.add_drums(self.current_drum_events)
+
+        midi_filename = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mid"
+        exporter.save(midi_filename)
+
+        # Render to WAV (placeholder – you'll replace with actual FluidSynth render)
+        # For now, create a silent beat with correct duration
+        total_beats = sum(c.quarterLength for c in self.current_chords)
+        total_seconds = total_beats * (60.0 / self.current_tempo)
+        dummy_beat = AudioSegment.silent(duration=int(total_seconds * 1000))
+        self.current_beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        dummy_beat.export(self.current_beat_wav, format="wav")
+
+        self.beat_status.setText(f"Beat generated ({total_seconds:.1f}s)")
+        self.regenerate_beat_btn.setEnabled(True)
+        self._populate_beat_tracks()
+
+    def _populate_beat_tracks(self):
+        """Populate individual track buttons for beat regeneration."""
+        # Clear existing
+        for i in reversed(range(self.beat_tracks_layout.count())):
+            self.beat_tracks_layout.itemAt(i).widget().deleteLater()
+
+        # Add buttons for chords, melody, drums
+        btn_layout = QHBoxLayout()
+        chords_btn = QPushButton("Regenerate Chords")
+        chords_btn.clicked.connect(self.regenerate_chords)
+        melody_btn = QPushButton("Regenerate Melody")
+        melody_btn.clicked.connect(self.regenerate_melody)
+        drums_btn = QPushButton("Regenerate Drums")
+        drums_btn.clicked.connect(self.regenerate_drums)
+        btn_layout.addWidget(chords_btn)
+        btn_layout.addWidget(melody_btn)
+        btn_layout.addWidget(drums_btn)
+        self.beat_tracks_layout.addLayout(btn_layout)
+
+    def generate_lyrics(self):
+        """Generate lyrics based on theme."""
+        self.lyrics_text.setText("Generating lyrics...")
+        self.current_lyrics = self.lyrics_gen.generate_verse_markov(theme=self.current_theme, num_bars=8, rhyme_scheme='AABB')
+        self.lyrics_text.setText("\n".join(self.current_lyrics))
+        self.regenerate_lyrics_btn.setEnabled(True)
+
+    def generate_voice(self):
+        """Synthesize voice from lyrics."""
+        self.voice_status.setText("Generating voice...")
+
+        provider_name = self.tts_provider_combo.currentText()
+        tts = get_tts_provider(provider_name)
+
+        # Align syllables to beat
+        aligner = VocalAligner(tempo_bpm=self.current_tempo)
+        events = aligner.align_lyrics(self.current_lyrics, rest_duration_beats=1.0)
+
+        # Synthesize each syllable
+        syllable_duration = 0.25  # 16th note
+        vocal_tracks = []
+        for _, syllable in events:
+            syl_audio = tts.synthesize(syllable, apply_vst=False)
+            stretched = stretch_audio(syl_audio, target_duration_sec=syllable_duration)
+            vocal_tracks.append(stretched)
+
+        if vocal_tracks:
+            final_vocal = vocal_tracks[0]
+            for track in vocal_tracks[1:]:
+                final_vocal += track
+            self.current_vocal_path = f"temp_vocal_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+            final_vocal.export(self.current_vocal_path, format="wav")
+            self.voice_status.setText(f"Voice generated ({len(events)} syllables)")
+        else:
+            self.voice_status.setText("Voice generation failed")
+            return
+
+        self.regenerate_voice_btn.setEnabled(True)
+
+    def mix_track(self):
+        """Mix beat and voice into final track."""
+        if not self.current_beat_wav or not self.current_vocal_path:
+            self.voice_status.setText("Need both beat and voice to mix")
+            return
+
+        output_file = f"full_track_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        mix_tracks(self.current_vocal_path, self.current_beat_wav, output_file, vocal_gain_db=0, beat_gain_db=-6)
+        self.track_generated.emit(output_file)
+        self.voice_status.setText(f"Mixed track saved: {output_file}")
+
+    # --- Regeneration methods ---
+    def regenerate_beat(self):
+        self.generate_beat()
+        self.generate_voice()
+        self.mix_track()
+
+    def regenerate_lyrics(self):
+        self.generate_lyrics()
+        self.generate_voice()
+        self.mix_track()
+
+    def regenerate_voice(self):
+        self.generate_voice()
+        self.mix_track()
+
+    def regenerate_chords(self):
+        # Regenerate only chords, keep melody and drums
+        self.current_chords = self.chord_gen.generate(self.current_genre, self.current_theme, self.current_key)
+        self.current_melody = self.melody_gen.generate_melody(self.current_chords, key_name=self.current_key, durations_per_chord=4)
+        self.current_drum_events = self.drum_gen.get_all_events(self.current_genre)  # drums unchanged
+        self._update_beat_from_current()
+        self.generate_voice()
+        self.mix_track()
+
+    def regenerate_melody(self):
+        # Regenerate only melody
+        self.current_melody = self.melody_gen.generate_melody(self.current_chords, key_name=self.current_key, durations_per_chord=4)
+        self._update_beat_from_current()
+        self.generate_voice()
+        self.mix_track()
+
+    def regenerate_drums(self):
+        # Regenerate only drums
+        self.current_drum_events = self.drum_gen.get_all_events(self.current_genre)
+        self._update_beat_from_current()
+        self.generate_voice()
+        self.mix_track()
+
+    def _update_beat_from_current(self):
+        """Update beat WAV after regenerating a component."""
+        exporter = MIDIExporter(tempo=self.current_tempo)
+        exporter.add_chords(self.current_chords, program=1)
+        exporter.add_melody(self.current_melody, program=73)
+        exporter.add_drums(self.current_drum_events)
+
+        midi_filename = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mid"
+        exporter.save(midi_filename)
+
+        # Re-render to WAV (placeholder)
+        total_beats = sum(c.quarterLength for c in self.current_chords)
+        total_seconds = total_beats * (60.0 / self.current_tempo)
+        dummy_beat = AudioSegment.silent(duration=int(total_seconds * 1000))
+        self.current_beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        dummy_beat.export(self.current_beat_wav, format="wav")
+        self.beat_status.setText(f"Beat updated ({total_seconds:.1f}s)")

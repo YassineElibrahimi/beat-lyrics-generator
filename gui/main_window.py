@@ -5,14 +5,15 @@ Main window for Beat & Lyrics Generator GUI.
 
 import sys
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QTabWidget,
-                                QApplication)
+                               QApplication, QMessageBox)
 from gui.beat_editor_widget import BeatEditorWidget
+from gui.full_track_widget import FullTrackWidget
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Beat & Lyrics Generator")
-        self.setMinimumSize(900, 700)
+        self.setMinimumSize(1000, 800)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -25,16 +26,14 @@ class MainWindow(QMainWindow):
         self.beat_editor = BeatEditorWidget()
         self.tabs.addTab(self.beat_editor, "Beat Editor")
 
-        # Full Track Tab (placeholder for now)
-        self.full_track_tab = QWidget()
-        self.tabs.addTab(self.full_track_tab, "Full Track")
+        # Full Track Tab
+        self.full_track = FullTrackWidget()
+        self.tabs.addTab(self.full_track, "Full Track")
+        self.full_track.track_generated.connect(self.on_track_generated)
 
-        # Connect signals if needed
-        self.beat_editor.beat_updated.connect(self.on_beat_updated)
-
-    def on_beat_updated(self, beat_data):
-        """Handle beat updates (e.g., for preview or passing to full track tab)."""
-        print("Beat updated:", beat_data['tempo'])  # placeholder
+    def on_track_generated(self, path):
+        """Show a notification when a full track is ready."""
+        QMessageBox.information(self, "Track Ready", f"Full track saved to:\n{path}")
 
 def main():
     app = QApplication(sys.argv)
