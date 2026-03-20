@@ -1,0 +1,27 @@
+GUI Test Checklist
+
+Beat Editor Tab:
+    • Parameters (genre, theme, instrument, key, tempo) work
+    • Generate Beat creates chords, melody, drums
+    • Regenerate Chords updates only chords
+    • Regenerate Melody updates only melody
+    • Kick/Snare/Hi‑hat/Open Hat buttons update only that drum
+    • Save Project saves a .beatproj file
+    • Load Project restores the saved state
+
+Full Track Tab:
+    • Parameters (genre, theme, instrument, key, tempo) work
+    • TTS provider selection (placeholder vs elevenlabs)
+    • Generate Full Track creates beat, lyrics, voice, and mixed WAV
+    • Regenerate Beat updates beat, voice, and mixed track
+    • Regenerate Lyrics updates lyrics, voice, and mixed track
+    • Regenerate Voice updates voice and mixed track
+    • Regenerate Chords updates chords, voice, and mixed track
+    • Regenerate Melody updates melody, voice, and mixed track
+    • Regenerate Drums updates drums, voice, and mixed track
+    • Save Project saves a .trackproj file
+    • Load Project restores the saved state
+
+General:
+    • No crashes during normal use
+    • Error messages appear when expected (e.g., missing API key)
