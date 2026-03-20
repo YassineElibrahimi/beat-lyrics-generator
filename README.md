@@ -238,7 +238,7 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 15 | Time‑stretching audio to fit beat durations || ✅ |
 | 16 | Mixing beat and vocals, full track playback || ✅ |
 | **4: Full Track & Polish** |
-| 17 | Random full track generation || ⬜ |
+| 17 | Random full track generation || ✅ |
 | 18 | Save/load project functionality || ⬜ |
 | 19 | UI/UX improvements (progress bars, better layout) | *check Notes/GUIchecklist*| ⬜/✅ |
 | 20 | Testing, documentation, final polish || ⬜ |
