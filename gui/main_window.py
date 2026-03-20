@@ -5,15 +5,16 @@ Main window for Beat & Lyrics Generator GUI.
 
 import sys
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QTabWidget,
-                               QApplication, QMessageBox)
+                                QApplication, QMessageBox)
 from gui.beat_editor_widget import BeatEditorWidget
 from gui.full_track_widget import FullTrackWidget
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Beat & Lyrics Generator")
-        self.setMinimumSize(1000, 800)
+        self.setMinimumSize(900, 700)
 
         central = QWidget()
         self.setCentralWidget(central)

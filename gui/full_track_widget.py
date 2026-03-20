@@ -21,6 +21,9 @@ from pydub import AudioSegment
 import os
 import random
 from datetime import datetime
+from PySide6.QtWidgets import QFileDialog, QMessageBox
+from core.project_manager import ProjectManager
+
 
 class FullTrackWidget(QWidget):
     """Widget for generating full tracks (beat + lyrics + voice)."""
@@ -50,6 +53,17 @@ class FullTrackWidget(QWidget):
     def _setup_ui(self):
         """Create all UI elements."""
         main_layout = QVBoxLayout(self)
+
+        # Add Save/Load buttons
+        toolbar = QHBoxLayout()
+        self.save_btn = QPushButton("Save Project")
+        self.save_btn.clicked.connect(self.save_project)
+        self.load_btn = QPushButton("Load Project")
+        self.load_btn.clicked.connect(self.load_project)
+        toolbar.addWidget(self.save_btn)
+        toolbar.addWidget(self.load_btn)
+        toolbar.addStretch()
+        main_layout.addLayout(toolbar)
 
         # --- Parameters Group ---
         params_group = QGroupBox("Track Parameters")
@@ -368,3 +382,68 @@ class FullTrackWidget(QWidget):
         self.current_beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
         dummy_beat.export(self.current_beat_wav, format="wav")
         self.beat_status.setText(f"Beat updated ({total_seconds:.1f}s)")
+
+    def get_project_data(self):
+        """Collect current project data for saving."""
+        return {
+            'type': 'full_track',
+            'genre': self.current_genre,
+            'theme': self.current_theme,
+            'key': self.current_key,
+            'tempo': self.current_tempo,
+            'instrument': self.current_instrument,
+            'lyrics': self.current_lyrics,
+            'tts_provider': self.tts_provider_combo.currentText(),
+            'beat_data': {
+                'chords': [c.pitchedCommonName for c in self.current_chords] if hasattr(self, 'current_chords') else [],
+                'melody_notes': [n.nameWithOctave for n in list(self.current_melody.notes)[:20]] if hasattr(self, 'current_melody') else [],
+                'drum_patterns': self.drum_gen.current_grid if hasattr(self.drum_gen, 'current_grid') else {}
+            }
+        }
+
+    def load_project_data(self, data):
+        """Load project data and restore state."""
+        if data.get('type') != 'full_track':
+            return False
+
+        # Restore parameters
+        self.genre_combo.setCurrentText(data.get('genre', 'trap'))
+        self.theme_combo.setCurrentText(data.get('theme', 'hard'))
+        self.key_combo.setCurrentText(data.get('key', 'C'))
+        self.tempo_slider.setValue(data.get('tempo', 140))
+        self.instrument_combo.setCurrentText(data.get('instrument', 'piano'))
+        self.tts_provider_combo.setCurrentText(data.get('tts_provider', 'placeholder'))
+
+        # Restore lyrics
+        self.current_lyrics = data.get('lyrics', [])
+        if self.current_lyrics:
+            self.lyrics_text.setText("\n".join(self.current_lyrics))
+
+        # Regenerate beat and voice
+        self.generate_beat()
+        self.generate_voice()
+        self.mix_track()
+        return True
+
+    def save_project(self):
+        """Save current project to a JSON file."""
+        filepath, _ = QFileDialog.getSaveFileName(
+            self, "Save Full Track Project", "", "Full Track Project (*.trackproj);;All Files (*)"
+        )
+        if filepath:
+            data = self.get_project_data()
+            ProjectManager.save_project(filepath, data)
+            QMessageBox.information(self, "Save Project", f"Project saved to {filepath}")
+
+    def load_project(self):
+        """Load a project from a JSON file."""
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Load Full Track Project", "", "Full Track Project (*.trackproj);;All Files (*)"
+        )
+        if filepath:
+            try:
+                data = ProjectManager.load_project(filepath)
+                self.load_project_data(data)
+                QMessageBox.information(self, "Load Project", f"Project loaded from {filepath}")
+            except Exception as e:
+                QMessageBox.critical(self, "Load Error", f"Failed to load project: {e}")
