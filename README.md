@@ -223,13 +223,13 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 4 | Rule‑based melody generator (chord tones + passing notes) || ✅ |
 | 5 | Probabilistic drum pattern generator per genre || ✅ |
 | 6 | MIDI export and playback (pygame + FluidSynth ready)   |*(high‑quality audio code ready, requires SoundFont)*| ✅ |
-| 7 | GUI (PySide6 + QML)|  – **paused**, replaced with CLI for testing | ⬜/✅ |
+| 7 | GUI (PySide6 + QML)|  – **paused**, replaced with CLI for testing | ✅ |
 | 7b | **Bug fixes and validation of Phase 1** || ✅ |
 | **2: Lyrics Generator** |
 | 8 | Import Kaggle lyrics datasets, build vocabulary, generate rhyming lines || ✅ |
 | 9 | Vocabulary refinement (sentiment analysis/theme assignment)  || ✅ |
 | 10 | Markov chain bigram model for improved line generation || ✅ |
-| 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) | The core first, GUI later (Sorry, you can test with CLI for now)| ⬜ |
+| 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) || ✅ |
 | 12 | Theme matching between beat and lyrics || ✅ |
 | 12b | Polish & Refinements | I have make a checklist *(check Notes/checkpoint12b)*| ✅ |
 | **3: Voice Synthesis** |
@@ -240,7 +240,7 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | **4: Full Track & Polish** |
 | 17 | Random full track generation || ⬜ |
 | 18 | Save/load project functionality || ⬜ |
-| 19 | UI/UX improvements (progress bars, better layout) || ⬜ |
+| 19 | UI/UX improvements (progress bars, better layout) | *check Notes/GUIchecklist*| ⬜/✅ |
 | 20 | Testing, documentation, final polish || ⬜ |
 
 ---

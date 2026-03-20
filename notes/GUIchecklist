@@ -1,0 +1,10 @@
+I have build just a Prototype/Blueprint for 'BEAT EDITOR' tab:
+"I will come back and refine the 'BEAT EDITOR' tab later"
+    • Add playback (play the beat from the editor)
+    • Add export (save as MIDI/WAV)
+    • Add download individual stems (kick-only WAV, etc.)
+    • Add mute/unmute buttons for each drum
+    • Add visual wave representation for each track
+    • Add save/load project functionality
+
+The same for 'FULL TRACK' tab:
