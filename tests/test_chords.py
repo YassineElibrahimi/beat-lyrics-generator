@@ -11,7 +11,7 @@ from core.chord_generator import ChordGenerator
 def main():
     gen = ChordGenerator()
     try:
-        chords = gen.generate(genre='trap', theme='hard', key='C')
+        chords = gen.generate(genre='trap', theme='hard', key_name='C')
         print("Generated chord progression:")
         for i, c in enumerate(chords):
             print(f"  Chord {i+1}: {c.pitchedCommonName} ({c})")
