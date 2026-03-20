@@ -234,9 +234,9 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 12b | Polish & Refinements | I have make a checklist *(check Notes/checkpoint12b)*| ✅ |
 | **3: Voice Synthesis** |
 | 13 | 	Flexible TTS architecture + ElevenLabs integration || ✅ |
-| 14 | Syllabification and beat alignment || ⬜ |
-| 15 | Time‑stretching audio to fit beat durations || ⬜ |
-| 16 | Mixing beat and vocals, full track playback || ⬜ |
+| 14 | Syllabification and beat alignment || ✅ |
+| 15 | Time‑stretching audio to fit beat durations || ✅ |
+| 16 | Mixing beat and vocals, full track playback || ✅ |
 | **4: Full Track & Polish** |
 | 17 | Random full track generation || ⬜ |
 | 18 | Save/load project functionality || ⬜ |
