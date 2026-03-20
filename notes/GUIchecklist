@@ -8,3 +8,7 @@ I have build just a Prototype/Blueprint for 'BEAT EDITOR' tab:
     • Add save/load project functionality
 
 The same for 'FULL TRACK' tab:
+    • Real beat rendering with FluidSynth (replace dummy silence)
+    • Playback preview within the GUI
+    • Save/load projects
+    • Export individual stems

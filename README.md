@@ -66,7 +66,7 @@ This project started as an ambitious blueprint and has been refined into a reali
 | Rhyme & generation      | pronouncing, custom Markov-inspired              | ✅ |
 | Sentiment analysis/Theme assignment       | VADER sentiment + keyword matching              | ✅ |
 | Voice Synthesis           | Custom TTS module (ElevenLabs)                     | ✅ (API key required) |
-| GUI                      | PySide6 + QML (paused)                  | ⬜ (will resume after core is solid) |
+| GUI                      | PySide6 + QML (paused)                  | ✅ |
 | Database                 | SQLite3                                | ✅     |
 
 ---
