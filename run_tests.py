@@ -29,7 +29,9 @@ def main():
         "test_markov_lyrics",
         "test_theme_matching",
         "test_edge_cases",
-        "verify_all_requirements"
+        "verify_all_requirements",
+        "test_tts.py",
+        "test_alignment.py"
     ]
     for mod in test_modules:
         run_test(mod)
