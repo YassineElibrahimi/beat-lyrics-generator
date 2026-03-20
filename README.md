@@ -13,7 +13,7 @@ Python application that generates beats and lyrics with an interactive, editable
 The SoundFonts are like gasoline; without them, the engine still runs (using a pygame fallback), but with the right fuel, it will roar with professional audio quality.  
 
 **For lyrics generation & voice generation:**  
-Like beat generation, The same concept applies – build the engine first, add the fuel (data) later.
+Like beat generation, The same concept applies **(Car & Gas)** – build the engine first, add the fuel (data) later.
 
 #### Beat & Lyrics Generator lets you:
 - **Generate a beat** – choose genre, theme, instrument, key, and tempo, and get a complete beat with chords, melody, and drums.
@@ -27,9 +27,9 @@ This project started as an ambitious blueprint and has been refined into a reali
 
 ---
 
-## Current Features (Phase 1 & 2 Completed)
+## Current Features (Phases 1–3 Completed)
 
-### Beat Generator
+### Beat Generator (Phase 1)
 - **Chord progression generator** – Roman numeral templates per genre & theme (trap, drill, old‑school). Uses `music21` to convert numerals to actual notes in any key.
 - **Melody generator** – Rule‑based: chord tones on strong beats, scale tones as passing notes. Avoids large leaps and pitch repetitions.
 - **Drum pattern generator** – Probabilistic 16‑step patterns per genre (kick, snare, hi‑hat, open hat) with independent regeneration.
@@ -37,11 +37,18 @@ This project started as an ambitious blueprint and has been refined into a reali
   - **Pygame fallback** (low quality, works out‑of‑the‑box).
   - **FluidSynth + SoundFont** (professional quality) – code ready; you provide the SoundFont ("gasoline").
 
-### Lyrics Generator
+### Lyrics Generator (Phase 2)
 - **Lyrics acquisition** – Three curated Kaggle hip‑hop datasets (no API limits, fully offline).
 - **Vocabulary extraction** – Theme‑based word frequency tables.
 - **Theme assignment** – Combined VADER sentiment + keyword scoring to classify lines into 8 themes (hard, melancholic, reflective, smooth, confident, inspirational, playful, street love).
-- **Markov chain generation** – Bigram model with weighted sampling produces coherent, theme‑aligned lyrics with rhyme support.
+- **Markov chain generation** – Bigram/trigram models with weighted sampling produce coherent, theme‑aligned lyrics with rhyme support.
+
+### Voice Synthesis (Phase 3)
+- **Flexible TTS architecture** – Abstract provider interface allows easy swapping of TTS engines (ElevenLabs, Google, etc.).
+- **ElevenLabs integration** – Professional, emotionally expressive TTS with support for voice cloning and multiple languages.
+- **Placeholder provider** – Simulates TTS for testing without an API key (returns silent audio).
+- **Error handling** – Gracefully manages API errors (invalid key, out of credits, rate limits) and network issues.
+- **Tier‑agnostic design** – The same code works with any ElevenLabs subscription (Free, Starter, Creator, etc.).
 
 ---
 
@@ -58,7 +65,7 @@ This project started as an ambitious blueprint and has been refined into a reali
 | Vocabulary extraction      | Custom regex + frequency counting              | ✅ |
 | Rhyme & generation      | pronouncing, custom Markov-inspired              | ✅ |
 | Sentiment analysis/Theme assignment       | VADER sentiment + keyword matching              | ✅ |
-| Text‑to‑Speech           | gTTS / Amazon Polly                     | ⬜ (Phase 3) |
+| Voice Synthesis           | Custom TTS module (ElevenLabs)                     | ✅ (API key required) |
 | GUI                      | PySide6 + QML (paused)                  | ⬜ (will resume after core is solid) |
 | Database                 | SQLite3                                | ✅     |
 
@@ -130,7 +137,13 @@ beat-lyrics-generator/
 │   ├── drum_generator.py
 │   ├── lyrics_generator.py
 │   ├── melody_generator.py
-│   └── midi_exporter.py              # MIDI creation and playback
+│   ├── midi_exporter.py              # MIDI creation and playback
+│   └── tts/                          # Text‑to‑Speech module (Phase 3)
+│       ├── __init__.py
+│       ├── provider.py                # Abstract TTS interface
+│       ├── placeholder.py             # Dummy provider for testing
+│       ├── elevenlabs.py               # Real ElevenLabs implementation
+│       └── config.py                   # API key loading
 │
 ├── gui/                              # GUI related code
 │   ├── main_window.py                # Main window setup (PySide6)
@@ -181,7 +194,8 @@ beat-lyrics-generator/
 │   ├── test_lyrics.py
 │   ├── test_markov_lyrics.py
 │   ├── test_melody.py
-│   └── test_midi.py
+│   ├── test_midi.py
+│   └── test_tts.py                   # TTS test script
 │   
 ├── .env.example
 ├── .gitignore
@@ -217,9 +231,9 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 10 | Markov chain bigram model for improved line generation || ✅ |
 | 11 | Lyrics structure UI (bars, hook, intro/outro, etc.) | The core first, GUI later (Sorry, you can test with CLI for now)| ⬜ |
 | 12 | Theme matching between beat and lyrics || ✅ |
-| 12b | Polish & Refinements | I have make a checklist *(check Notes/checkpoint12b)*| ⬜ |
+| 12b | Polish & Refinements | I have make a checklist *(check Notes/checkpoint12b)*| ✅ |
 | **3: Voice Synthesis** |
-| 13 | TTS integration (gTTS) with male/female toggle || ⬜ |
+| 13 | 	Flexible TTS architecture + ElevenLabs integration || ✅ |
 | 14 | Syllabification and beat alignment || ⬜ |
 | 15 | Time‑stretching audio to fit beat durations || ⬜ |
 | 16 | Mixing beat and vocals, full track playback || ⬜ |
@@ -238,6 +252,7 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 - [FluidSynth](http://www.fluidsynth.org/)
 - [VADER Sentiment](https://github.com/cjhutto/vaderSentiment)
 - [pronouncing](https://github.com/aparrish/pronouncingpy)
+- [ElevenLabs](https://elevenlabs.io/)
 - All open‑source contributors and Kaggle dataset providers
 
 ---
@@ -248,8 +263,10 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 
 **PS**: If I find a free, legal way to get data, I will mention it and use it later (like on Kaggle or other open-source platforms), or maybe I will make my own, but that will take some time. To be honest, don’t rely on that, because I have to respect the artist’s work and effort. (Update: I have Done it ✅ *read below*)
 
-**Lyrics Data:** Instead of relying on live APIs, I've integrated three curated Kaggle hip-hop lyric datasets. The data is included in the repository, so you can generate lyrics offline with zero API limits. All preprocessing and vocabulary extraction are handled by the included scripts.
-(you will find the datasets info with providers name in *'resources/lyrics_datasets_resources'*)
+**Lyrics Data:** Instead of relying on live APIs, I've integrated three curated Kaggle hip-hop lyric datasets.  
+The data is included in the repository, so you can generate lyrics offline with zero API limits.  
+All preprocessing and vocabulary extraction are handled by the included scripts.
+(You will find the datasets info with providers names in *'resources/lyrics_datasets_resources'*)
 
 ---
 
