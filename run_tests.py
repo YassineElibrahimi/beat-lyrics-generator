@@ -30,8 +30,10 @@ def main():
         "test_theme_matching",
         "test_edge_cases",
         "verify_all_requirements",
-        "test_tts.py",
-        "test_alignment.py"
+        "test_tts",
+        "test_alignment",
+        "test_stretcher",
+        "test_full_vocal_pipeline"
     ]
     for mod in test_modules:
         run_test(mod)
