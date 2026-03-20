@@ -33,7 +33,8 @@ def main():
         "test_tts",
         "test_alignment",
         "test_stretcher",
-        "test_full_vocal_pipeline"
+        "test_full_vocal_pipeline",
+        "test_mixer"
     ]
     for mod in test_modules:
         run_test(mod)
