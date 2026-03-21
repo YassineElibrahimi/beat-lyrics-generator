@@ -53,36 +53,38 @@ def seed_database():
 
     # Create tables
     init_db()
-    connection = get_connection()
-    cursor     = connection.cursor()
+    conn = get_connection()
+    cursor     = conn.cursor()
 
     # Insert genre
     genres_data = ['trap', 'drill', 'old_school']
 
     for genre in genres_data:
         cursor.execute('INSERT OR IGNORE INTO genres (name) VALUES (?)', (genre,))
-    connection.commit()
+    conn.commit()
 
     # Insert themes
     themes_data = ['hard', 'melancholic', 'aggressive', 'smooth']
 
     for theme in themes_data:
         cursor.execute('INSERT OR IGNORE INTO themes (name) VALUES (?)', (theme,))
-    connection.commit()
+    conn.commit()
 
     # Get genre and theme IDs for lookups
     cursor.execute('SELECT id, name FROM genres')
     genre_ids = {row['name']: row['id'] for row in cursor.fetchall()}
+    # print("Genre IDs found:", list(genre_ids.keys()))  # <-- ADD THIS LINE for debugging
 
     cursor.execute('SELECT id, name FROM themes')
     theme_ids = {row['name']: row['id'] for row in cursor.fetchall()}
+    # print("Theme IDs found:", list(theme_ids.keys()))  # <-- ADD THIS LINE for debugging
 
     # Insert instruments
     instruments = load_json('instruments.json')
 
     for name , program in instruments.items():
         cursor.execute('INSERT OR IGNORE INTO instruments (name, midi_program) VALUES (?, ?)', (name, program))
-    connection.commit()
+    conn.commit()
 
     # Insert chord progressions
     chord_progs = load_json('chord_progressions.json')
@@ -91,8 +93,8 @@ def seed_database():
         if '_' not in key:
             print(f"Skipping invalid key format: {key}")
             continue
-        genre_name, theme_name = key.split('_',1)         # key format: "genre_theme" (e.g., "trap_hard")
-        
+        genre_name, theme_name = key.rsplit('_',1)         # key format: "genre_theme" (e.g., "trap_hard")
+        # print(f"Processing: {key} -> genre='{genre_name}', theme='{theme_name}'")  # <-- ADD THIS for debugging
         if genre_name not in genre_ids or theme_name not in theme_ids:
             print(f"Skipping unknown genre/theme : {key}")
             continue
@@ -106,7 +108,7 @@ def seed_database():
                 INSERT INTO chord_progressions (genre_id, theme_id, roman_numerals)
                 VALUES (?, ?, ?)''',           (genre_id, theme_id, numerals_str)
             )
-    connection.commit()
+    conn.commit()
 
     # Insert drum patterns
     drum_patterns = load_json('drum_patterns.json')
@@ -123,8 +125,8 @@ def seed_database():
                 INSERT INTO drum_patterns (genre_id, pattern_name, probabilities)
                 VALUES (?, ?, ?)''', (genre_id, pattern_name, probabilities_json)
             )
-    connection.commit()
-    connection.close()
+    conn.commit()
+    conn.close()
     print("Database seeded successfully.")
 
 
