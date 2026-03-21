@@ -3,10 +3,7 @@ Goal: delete the fallback to pygame sounds.
 Now, I need to update files that contain pygame references.
 
 list of the them:
-    • 'core/midi_exporter.py' – contains play method and pygame.mixer import.
-    • 'cli.py' – contains pygame.mixer and pygame import.
-    • 'gui/beat_editor_widget.py' – may have pygame if we added a play button (but we haven't yet).
-    • 'gui/full_track_widget.py' – no pygame currently.
-    • 'tests/test_midi.py' – uses pygame for playback.
-    • 'tests/test_voice.py' – uses pygame (but that's placeholder TTS, not beat).
-    • 'requirements.txt' – we'll remove pygame later.
+    • 'core/midi_exporter.py' – contains play method and pygame.mixer import. ✅
+    • 'cli.py' – contains pygame.mixer and pygame import. ✅
+    • 'tests/test_midi.py' – uses pygame for playback. ✅
+    • 'requirements.txt' – we'll remove pygame later. ✅
