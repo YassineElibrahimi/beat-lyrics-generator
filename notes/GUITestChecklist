@@ -1,27 +1,123 @@
-GUI Test Checklist
+Here's the corrected version with typos fixed:
 
-Beat Editor Tab:
-    • Parameters (genre, theme, instrument, key, tempo) work
-    • Generate Beat creates chords, melody, drums
-    • Regenerate Chords updates only chords
-    • Regenerate Melody updates only melody
-    • Kick/Snare/Hi‑hat/Open Hat buttons update only that drum
-    • Save Project saves a .beatproj file
-    • Load Project restores the saved state
+---
 
-Full Track Tab:
-    • Parameters (genre, theme, instrument, key, tempo) work
-    • TTS provider selection (placeholder vs elevenlabs)
-    • Generate Full Track creates beat, lyrics, voice, and mixed WAV
-    • Regenerate Beat updates beat, voice, and mixed track
-    • Regenerate Lyrics updates lyrics, voice, and mixed track
-    • Regenerate Voice updates voice and mixed track
-    • Regenerate Chords updates chords, voice, and mixed track
-    • Regenerate Melody updates melody, voice, and mixed track
-    • Regenerate Drums updates drums, voice, and mixed track
-    • Save Project saves a .trackproj file
-    • Load Project restores the saved state
+**GUI Test Checklist**
 
-General:
-    • No crashes during normal use
-    • Error messages appear when expected (e.g., missing API key)
+**I need to integrate sounds and API's vocal** (later)
+
+### Beat Editor Tab:
+1. Generating beat is working well
+2. Chord regenerate button working well (it regenerates MIDI)
+3. Melody regenerate button working well (it regenerates MIDI)
+4. Kick regenerate button working well
+   - But it regenerates everything instead of just the kick (same with snare/hihats/openhats)
+5. The save/load function is working well
+
+**TO FIX:**
+1. All the buttons generate new pattern 'MIDI', not new sounds, I think. (I will check that after I integrate sounds and API).
+   - It should be two buttons:
+     - one for changing the sound of the (kick/snare/melody...etc.)
+     - one for changing the pattern 'MIDI'
+     - But I will skip the changing sound button for now
+
+2. The old-school genre is not working at all.
+   - I have tested old_school genre with all the themes, and all the keys. (I think old_school is not in the database, and I think it's because the `.split("",-1)` function).
+   - I remember back then when I was writing the code, it was a problem of splitting the underscore words that contain three underscores, "something like old_school_theme/or theme_old_school" it was then just split two underscores not three underscores.
+   - The output: 
+     ```
+     Traceback (most recent call last):
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\beat_editor_widget.py", line 136, in generate_beat
+         self.chords = self.chord_gen.generate(self.current_genre, self.current_theme, self.current_key)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\core\chord_generator.py", line 106, in generate     
+         roman_list = self.get_random_progression(genre, theme)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\core\chord_generator.py", line 78, in get_random_progression
+             raise ValueError(f"No progression found for genre '{genre}' and theme '{theme}'.")
+     ValueError: No progression found for genre 'old_school' and theme 'hard'.
+     ```
+
+3. In trap genre, the themes smooth and aggressive are not working.
+   - The Output:
+     ```
+     Traceback (most recent call last):
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\beat_editor_widget.py", line 136, in generate_beat
+             self.chords = self.chord_gen.generate(self.current_genre, self.current_theme, self.current_key)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\core\chord_generator.py", line 106, in generate
+             roman_list = self.get_random_progression(genre, theme)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\core\chord_generator.py", line 78, in get_random_progression
+             raise ValueError(f"No progression found for genre '{genre}' and theme '{theme}'.")
+     ValueError: No progression found for genre 'trap' and theme 'aggressive'.
+     ```
+
+4. Same thing with drill, the themes smooth, aggressive and melancholic are not working
+   - The Output:
+     ```
+     Traceback (most recent call last):
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\beat_editor_widget.py", line 136, in generate_beat
+             self.chords = self.chord_gen.generate(self.current_genre, self.current_theme, self.current_key)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\core\chord_generator.py", line 106, in generate
+             roman_list = self.get_random_progression(genre, theme)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\core\chord_generator.py", line 78, in get_random_progression
+             raise ValueError(f"No progression found for genre '{genre}' and theme '{theme}'.")
+     ValueError: No progression found for genre 'drill' and theme 'melancholic'.
+     ```
+
+**NEED TO CHECK LATER:**
+1. The tempo bar is working well, but I don't know if it affects the beat's tempo; because I didn't integrate sounds and API yet
+
+---
+
+### Full Track Tab:
+1. The same problems as edit beat tab
+2. Lyrics regenerate button is working well
+   - But it generates just 8 bars.
+   - The lyrics generator needs improvement
+     - Problems:
+       - Generates meaningless bars
+       - Generates a bar containing just "yeah yeah yeah yeah"
+       - Generates like "s, m, t" (I think it comes from "it's", "don't", "I'm"...etc.)
+     - Lyrics example:
+       ```
+       And if you doubt me
+       We don t wanna be like m.d.
+       To the devil came
+       So good when a nigga where you when
+       Hurts for the g s and the tenn
+       And i set dat bitch off
+       Niggas so upset i can make the croff
+       ```
+3. In the beat section the generate beat button is not working
+   - The output:
+     ```
+     Traceback (most recent call last):
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\full_track_widget.py", line 332, in regenerate_beat
+         self.generate_beat()
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\full_track_widget.py", line 259, in generate_beat
+         self._populate_beat_tracks()
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\full_track_widget.py", line 265, in _populate_beat_tracks
+         self.beat_tracks_layout.itemAt(i).widget().deleteLater()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     AttributeError: 'NoneType' object has no attribute 'deleteLater'
+     ```
+4. The regenerate voice button works well (while using placeholder)
+   - But when I change option to ElevenLabs API it raises an error in the terminal which is good, but it doesn't show the error in the GUI, instead it prints "Generating voice...", and stays freezing on that sentence. The program doesn't crash by the way.
+   - The output:
+     ```
+     Traceback (most recent call last):
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\full_track_widget.py", line 342, in regenerate_voice
+             self.generate_voice()
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\gui\full_track_widget.py", line 292, in generate_voice
+             tts = get_tts_provider(provider_name)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         File "C:\Users\pc\Desktop\Files\beat-lyrics-generator\core\tts\__init__.py", line 31, in get_tts_provider 
+             raise ValueError("ElevenLabs API key not provided. Set it in .env or pass api_key.")
+     ValueError: ElevenLabs API key not provided. Set it in .env or pass api_key.
+     ```
+
+---
