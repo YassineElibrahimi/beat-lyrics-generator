@@ -206,8 +206,10 @@ This project follows a **checkpoint‑based development plan**. Each checkpoint 
 | 17 | Random full track generation || ✅ |
 | 18 | Save/load project functionality || ✅ |
 | 19 | UI/UX improvements | (progress bars, better layout) *check Notes/GUIchecklist*| ✅ |
-| 20 | Testing, documentation, final polish || ✅ (current) |
-| 20b |  Polish & Refinements | There is a lot to do. The first Goal was an MVP which is Done. But now its time to make this AMAZING| ✅ (current) |
+| 20 | Testing, documentation, final polish || ✅ |
+
+Next step:
+There is a lot to do right now. The first Goal was an MVP which is Done. But now its time to make this AMAZING
 
 ---
 
