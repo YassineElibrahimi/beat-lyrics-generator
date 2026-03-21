@@ -275,10 +275,21 @@ class BeatEditorWidget(QWidget):
 
     def _regenerate_drum(self, instrument):
         """Regenerate a specific drum instrument."""
-        # Generate only that instrument (this updates the internal grid)
+        # Generate only that instrument (updates the internal grid)
         self.drum_gen.generate_pattern(self.current_genre, regenerate=[instrument])
-        # Now get all events using the current grid (which has the updated instrument)
-        self.drum_events = self.drum_gen.get_all_events(self.current_genre)
+
+        # Build drum events from the current grid without calling get_all_events()
+        self.drum_events = []
+        for inst, grid in self.drum_gen.current_grid.items():
+            note = self.drum_gen.DRUM_NOTES.get(inst)
+            if note is None:
+                continue
+            for step, active in enumerate(grid):
+                if active:
+                    time_in_beats = step * 0.25
+                    self.drum_events.append((time_in_beats, note, 100))
+        self.drum_events.sort(key=lambda x: x[0])
+
         # Update display
         self.drum_display.setText(self._format_drums())
         self.beat_updated.emit({
