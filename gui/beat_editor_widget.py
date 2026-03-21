@@ -275,7 +275,9 @@ class BeatEditorWidget(QWidget):
 
     def _regenerate_drum(self, instrument):
         """Regenerate a specific drum instrument."""
+        # Generate only that instrument (this updates the internal grid)
         self.drum_gen.generate_pattern(self.current_genre, regenerate=[instrument])
+        # Now get all events using the current grid (which has the updated instrument)
         self.drum_events = self.drum_gen.get_all_events(self.current_genre)
         # Update display
         self.drum_display.setText(self._format_drums())
