@@ -200,3 +200,30 @@ class MIDIExporter:
         os.unlink(wav_path)
         if filename is None:
             os.unlink(midi_path)
+
+    def render_to_wav(self, soundfont_path, output_wav_path):
+        """
+        Render the current MIDI to a WAV file using FluidSynth.
+        """
+        import subprocess
+        import tempfile
+        import os
+
+        # Save MIDI to a temporary file
+        fd, midi_path = tempfile.mkstemp(suffix='.mid')
+        os.close(fd)
+        self.save(midi_path)
+
+        # Build command
+        cmd = ['fluidsynth', '-F', output_wav_path, '-ni', soundfont_path, midi_path]
+        print("Rendering with command:", ' '.join(cmd))
+
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            print("stdout:", result.stdout)
+            print("stderr:", result.stderr)
+        except subprocess.CalledProcessError as e:
+            print(f"FluidSynth rendering failed: {e.stderr}")
+            raise
+        finally:
+            os.unlink(midi_path)

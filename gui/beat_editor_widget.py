@@ -13,6 +13,8 @@ from core.drum_generator import DrumGenerator
 from core.midi_exporter import MIDIExporter
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 from core.project_manager import ProjectManager
+from core.config import SOUNDFONT_PATH
+from datetime import datetime
 
 class BeatEditorWidget(QWidget):
     """Widget for generating and editing beats."""
@@ -30,6 +32,7 @@ class BeatEditorWidget(QWidget):
         self.current_key = "C"
         self.current_tempo = 140
         self.current_instrument = "piano"
+        self.current_beat_wav = None
 
         self._setup_ui()
 
@@ -137,6 +140,19 @@ class BeatEditorWidget(QWidget):
         self.melody = self.melody_gen.generate_melody(self.chords, key_name=self.current_key, durations_per_chord=4)
         self.drum_events = self.drum_gen.get_all_events(self.current_genre)
 
+        # Export MIDI and render to WAV
+        exporter = MIDIExporter(tempo=self.current_tempo)
+        exporter.add_chords(self.chords, program=1)
+        exporter.add_melody(self.melody, program=73)
+        exporter.add_drums(self.drum_events)
+
+        midi_filename = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mid"
+        exporter.save(midi_filename)
+
+        beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        exporter.render_to_wav(SOUNDFONT_PATH, beat_wav)
+        self.current_beat_wav = beat_wav   # store for potential later use (e.g., playback)
+
         # Display tracks
         self._add_track_panel("Chords", self._format_chords(), self.regenerate_chords)
         self._add_track_panel("Melody", self._format_melody(), self.regenerate_melody)
@@ -147,7 +163,8 @@ class BeatEditorWidget(QWidget):
             'chords': self.chords,
             'melody': self.melody,
             'drums': self.drum_events,
-            'tempo': self.current_tempo
+            'tempo': self.current_tempo,
+            'beat_wav': self.current_beat_wav  # optional
         })
 
     def _clear_tracks(self):

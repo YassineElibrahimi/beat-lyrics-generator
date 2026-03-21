@@ -17,3 +17,6 @@ THEME_CONFIG_PATH = os.path.join('data', 'theme_config.json')
 
 # Default theme fallback
 DEFAULT_THEME = "hard"
+
+#  SoundFont path
+SOUNDFONT_PATH = os.path.join("resources", "SGM-v2.01-Sal-Guit-Bass-V1.3.sf2")

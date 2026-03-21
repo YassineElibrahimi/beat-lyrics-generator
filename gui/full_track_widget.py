@@ -22,6 +22,7 @@ import os
 import random
 from datetime import datetime
 from core.project_manager import ProjectManager
+from core.config import SOUNDFONT_PATH
 
 
 class FullTrackWidget(QWidget):
@@ -246,14 +247,13 @@ class FullTrackWidget(QWidget):
         midi_filename = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mid"
         exporter.save(midi_filename)
 
-        # Render to WAV (placeholder – you'll replace with actual FluidSynth render)
-        # For now, create a silent beat with correct duration
+        # Render to WAV using FluidSynth
+        beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        exporter.render_to_wav(SOUNDFONT_PATH, beat_wav)
+        self.current_beat_wav = beat_wav
+
         total_beats = sum(c.quarterLength for c in self.current_chords)
         total_seconds = total_beats * (60.0 / self.current_tempo)
-        dummy_beat = AudioSegment.silent(duration=int(total_seconds * 1000))
-        self.current_beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
-        dummy_beat.export(self.current_beat_wav, format="wav")
-
         self.beat_status.setText(f"Beat generated ({total_seconds:.1f}s)")
         self.regenerate_beat_btn.setEnabled(True)
         self._populate_beat_tracks()
@@ -450,12 +450,13 @@ class FullTrackWidget(QWidget):
         midi_filename = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mid"
         exporter.save(midi_filename)
 
-        # Re-render to WAV (placeholder)
+        # Render to WAV using FluidSynth
+        beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        exporter.render_to_wav(SOUNDFONT_PATH, beat_wav)
+        self.current_beat_wav = beat_wav
+
         total_beats = sum(c.quarterLength for c in self.current_chords)
         total_seconds = total_beats * (60.0 / self.current_tempo)
-        dummy_beat = AudioSegment.silent(duration=int(total_seconds * 1000))
-        self.current_beat_wav = f"temp_beat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
-        dummy_beat.export(self.current_beat_wav, format="wav")
         self.beat_status.setText(f"Beat updated ({total_seconds:.1f}s)")
 
     def get_project_data(self):
