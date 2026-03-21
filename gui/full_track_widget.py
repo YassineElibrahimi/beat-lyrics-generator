@@ -6,7 +6,7 @@ Full Track Widget - generates beat, lyrics, and voice, with individual track con
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                 QLabel, QComboBox, QSlider, QPushButton,
                                 QGridLayout, QScrollArea, QFrame, QTextEdit,
-                                QSplitter)
+                                QSplitter, QFileDialog, QMessageBox, QApplication)
 from PySide6.QtCore import Qt, Signal
 from core.chord_generator import ChordGenerator
 from core.melody_generator import MelodyGenerator
@@ -47,6 +47,7 @@ class FullTrackWidget(QWidget):
         self.current_beat_data = {}
         self.current_vocal_path = None
         self.current_beat_wav = None
+        self.button_layout = None
 
         self._setup_ui()
 
@@ -260,22 +261,29 @@ class FullTrackWidget(QWidget):
 
     def _populate_beat_tracks(self):
         """Populate individual track buttons for beat regeneration."""
-        # Clear existing
-        for i in reversed(range(self.beat_tracks_layout.count())):
-            self.beat_tracks_layout.itemAt(i).widget().deleteLater()
+        # Remove existing button layout if present
+        if hasattr(self, 'button_layout') and self.button_layout:
+            # Clear all widgets from the layout
+            while self.button_layout.count():
+                child = self.button_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+            # Remove the layout from the parent
+            self.beat_tracks_layout.removeItem(self.button_layout)
+            self.button_layout.deleteLater()
 
-        # Add buttons for chords, melody, drums
-        btn_layout = QHBoxLayout()
+        # Create new button layout
+        self.button_layout = QHBoxLayout()
         chords_btn = QPushButton("Regenerate Chords")
         chords_btn.clicked.connect(self.regenerate_chords)
         melody_btn = QPushButton("Regenerate Melody")
         melody_btn.clicked.connect(self.regenerate_melody)
         drums_btn = QPushButton("Regenerate Drums")
         drums_btn.clicked.connect(self.regenerate_drums)
-        btn_layout.addWidget(chords_btn)
-        btn_layout.addWidget(melody_btn)
-        btn_layout.addWidget(drums_btn)
-        self.beat_tracks_layout.addLayout(btn_layout)
+        self.button_layout.addWidget(chords_btn)
+        self.button_layout.addWidget(melody_btn)
+        self.button_layout.addWidget(drums_btn)
+        self.beat_tracks_layout.addLayout(self.button_layout)
 
     def generate_lyrics(self):
         """Generate lyrics based on theme."""
@@ -287,9 +295,15 @@ class FullTrackWidget(QWidget):
     def generate_voice(self):
         """Synthesize voice from lyrics."""
         self.voice_status.setText("Generating voice...")
+        QApplication.processEvents()  # Force UI update
 
         provider_name = self.tts_provider_combo.currentText()
-        tts = get_tts_provider(provider_name)
+        try:
+            tts = get_tts_provider(provider_name)
+        except Exception as e:
+            self.voice_status.setText(f"Error: {e}")
+            QMessageBox.critical(self, "TTS Error", str(e))
+            return
 
         # Align syllables to beat
         aligner = VocalAligner(tempo_bpm=self.current_tempo)
@@ -298,10 +312,15 @@ class FullTrackWidget(QWidget):
         # Synthesize each syllable
         syllable_duration = 0.25  # 16th note
         vocal_tracks = []
-        for _, syllable in events:
-            syl_audio = tts.synthesize(syllable, apply_vst=False)
-            stretched = stretch_audio(syl_audio, target_duration_sec=syllable_duration)
-            vocal_tracks.append(stretched)
+        try:
+            for _, syllable in events:
+                syl_audio = tts.synthesize(syllable, apply_vst=False)
+                stretched = stretch_audio(syl_audio, target_duration_sec=syllable_duration)
+                vocal_tracks.append(stretched)
+        except Exception as e:
+            self.voice_status.setText(f"Synthesis failed: {e}")
+            QMessageBox.critical(self, "Voice Synthesis Error", str(e))
+            return
 
         if vocal_tracks:
             final_vocal = vocal_tracks[0]
