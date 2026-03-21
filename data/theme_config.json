@@ -6,6 +6,12 @@
             "genres": ["trap", "drill"],
             "priority": 1
         },
+        "aggressive": {
+            "sentiment_range": [-0.8, -0.1],
+            "keywords": ["aggressive", "violent", "savage", "brutal", "fierce", "ruthless", "cutthroat", "merciless", "onslaught", "battle", "slay", "annihilate", "crush", "smash", "wreck", "dominant", "forceful", "intense", "ferocious", "hostile"],
+            "genres": ["trap", "drill"],
+            "priority": 2
+        },
         "melancholic": {
             "sentiment_range": [-0.3, 0.0],
             "keywords": ["lost", "pain", "alone", "tears", "hurt", "cry", "broken", "heart", "sad", "regret", "lonely", "struggle"],
