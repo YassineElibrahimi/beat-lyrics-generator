@@ -3,6 +3,9 @@ from core.melody_generator import MelodyGenerator
 from core.drum_generator import DrumGenerator
 from core.midi_exporter import MIDIExporter
 
+
+
+
 def main():
     # Parameters
     genre = 'trap'
@@ -35,10 +38,6 @@ def main():
     output_file = 'test_output.mid'
     exporter.save(output_file)
     print(f"MIDI saved as {output_file}")
-
-    # Uncomment to play immediately (may not work on all systems)
-    # print("Playing MIDI...")
-    # exporter.play(output_file)
 
 if __name__ == '__main__':
     main()
