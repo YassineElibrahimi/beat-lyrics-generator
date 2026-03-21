@@ -21,7 +21,6 @@ from pydub import AudioSegment
 import os
 import random
 from datetime import datetime
-from PySide6.QtWidgets import QFileDialog, QMessageBox
 from core.project_manager import ProjectManager
 
 
@@ -272,17 +271,38 @@ class FullTrackWidget(QWidget):
             self.beat_tracks_layout.removeItem(self.button_layout)
             self.button_layout.deleteLater()
 
-        # Create new button layout
-        self.button_layout = QHBoxLayout()
+        # Create a vertical container for button rows
+        self.button_layout = QVBoxLayout()
+
+        # Row 1: Chords, Melody, All Drums
+        row1 = QHBoxLayout()
         chords_btn = QPushButton("Regenerate Chords")
         chords_btn.clicked.connect(self.regenerate_chords)
         melody_btn = QPushButton("Regenerate Melody")
         melody_btn.clicked.connect(self.regenerate_melody)
-        drums_btn = QPushButton("Regenerate Drums")
+        drums_btn = QPushButton("Regenerate All Drums")
         drums_btn.clicked.connect(self.regenerate_drums)
-        self.button_layout.addWidget(chords_btn)
-        self.button_layout.addWidget(melody_btn)
-        self.button_layout.addWidget(drums_btn)
+        row1.addWidget(chords_btn)
+        row1.addWidget(melody_btn)
+        row1.addWidget(drums_btn)
+        self.button_layout.addLayout(row1)
+
+        # Row 2: Individual drum buttons
+        row2 = QHBoxLayout()
+        kick_btn = QPushButton("Kick")
+        kick_btn.clicked.connect(self.regenerate_kick)
+        snare_btn = QPushButton("Snare")
+        snare_btn.clicked.connect(self.regenerate_snare)
+        hihat_btn = QPushButton("Hi‑hat")
+        hihat_btn.clicked.connect(self.regenerate_hihat)
+        openhat_btn = QPushButton("Open Hat")
+        openhat_btn.clicked.connect(self.regenerate_open_hat)
+        row2.addWidget(kick_btn)
+        row2.addWidget(snare_btn)
+        row2.addWidget(hihat_btn)
+        row2.addWidget(openhat_btn)
+        self.button_layout.addLayout(row2)
+
         self.beat_tracks_layout.addLayout(self.button_layout)
 
     def generate_lyrics(self):
@@ -346,7 +366,43 @@ class FullTrackWidget(QWidget):
         self.track_generated.emit(output_file)
         self.voice_status.setText(f"Mixed track saved: {output_file}")
 
-    # --- Regeneration methods ---
+    # --- Helper to rebuild drum events from current grid ---
+    def _rebuild_drum_events_from_grid(self):
+        """Rebuild self.current_drum_events from self.drum_gen.current_grid."""
+        events = []
+        for inst, grid in self.drum_gen.current_grid.items():
+            note = self.drum_gen.DRUM_NOTES.get(inst)
+            if note is None:
+                continue
+            for step, active in enumerate(grid):
+                if active:
+                    time_in_beats = step * 0.25
+                    events.append((time_in_beats, note, 100))
+        events.sort(key=lambda x: x[0])
+        self.current_drum_events = events
+
+    # --- Individual drum regeneration methods ---
+    def regenerate_kick(self):
+        self._regenerate_single_drum('kick')
+
+    def regenerate_snare(self):
+        self._regenerate_single_drum('snare')
+
+    def regenerate_hihat(self):
+        self._regenerate_single_drum('hihat')
+
+    def regenerate_open_hat(self):
+        self._regenerate_single_drum('open_hat')
+
+    def _regenerate_single_drum(self, instrument):
+        """Regenerate a specific drum instrument and update the track."""
+        self.drum_gen.generate_pattern(self.current_genre, regenerate=[instrument])
+        self._rebuild_drum_events_from_grid()
+        self._update_beat_from_current()
+        self.generate_voice()
+        self.mix_track()
+
+    # --- Existing regeneration methods ---
     def regenerate_beat(self):
         self.generate_beat()
         self.generate_voice()
@@ -365,7 +421,7 @@ class FullTrackWidget(QWidget):
         # Regenerate only chords, keep melody and drums
         self.current_chords = self.chord_gen.generate(self.current_genre, self.current_theme, self.current_key)
         self.current_melody = self.melody_gen.generate_melody(self.current_chords, key_name=self.current_key, durations_per_chord=4)
-        self.current_drum_events = self.drum_gen.get_all_events(self.current_genre)  # drums unchanged
+        # Drums remain unchanged – no need to regenerate
         self._update_beat_from_current()
         self.generate_voice()
         self.mix_track()
@@ -378,7 +434,7 @@ class FullTrackWidget(QWidget):
         self.mix_track()
 
     def regenerate_drums(self):
-        # Regenerate only drums
+        # Regenerate all drums
         self.current_drum_events = self.drum_gen.get_all_events(self.current_genre)
         self._update_beat_from_current()
         self.generate_voice()
